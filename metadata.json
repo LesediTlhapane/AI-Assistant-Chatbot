@@ -1,0 +1,6 @@
+{
+  "name": "eStudy AI Learning Assistant",
+  "description": "An embedded AI Learning Assistant prototype integrated into the CrossKnowledge LMS for eStudy South Africa, featuring contextual course guidance, interactive quizzes, practical challenges, and real-time comprehension support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
