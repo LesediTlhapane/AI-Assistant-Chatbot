@@ -41,7 +41,7 @@ export const LmsLayout: React.FC<LmsLayoutProps> = ({
   onPrevLesson
 }) => {
   const [isSidebarOpenMobile, setIsSidebarOpenMobile] = useState(false);
-  const [isAiOpenDesktop, setIsAiOpenDesktop] = useState(true);
+  const [isAiOpenDesktop, setIsAiOpenDesktop] = useState(false);
   const [isAiExpanded, setIsAiExpanded] = useState(false);
   const [isAiOpenMobile, setIsAiOpenMobile] = useState(false);
 

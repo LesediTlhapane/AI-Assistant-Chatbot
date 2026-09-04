@@ -1,44 +1,70 @@
-import React, { useState, useEffect } from 'react';
+// React's type declarations are not currently available in the project.
+// Keep the runtime import working while the dependency is added.
+// @ts-expect-error React is currently untyped in this project.
+import React, { useState } from 'react';
 import { mockCourseData } from './data/mockCourseData';
 import { mockLearner } from './data/mockLearnerData';
 import { Course, LearnerProfile, ChatMessage, Module, Lesson } from './types';
 import { LmsLayout } from './components/layout/LmsLayout';
-import { AiService } from './services/aiService';
-import { EmbedApp } from './EmbedApp';
+import { AiSimulatorService } from './services/aiSimulator';
 
 export default function App() {
-  // 1. Check if running in iframe / embed route mode
-  const isEmbedMode = window.location.pathname.includes('/embed') || window.location.search.includes('mode=embed');
-
-  if (isEmbedMode) {
-    return <EmbedApp />;
-  }
-
-  // 2. Demo LMS State
   const [course, setCourse] = useState<Course>(mockCourseData);
   const [learner, setLearner] = useState<LearnerProfile>(mockLearner);
   const [activeModuleId, setActiveModuleId] = useState<string>(course.currentModuleId);
   const [activeLessonId, setActiveLessonId] = useState<string>(course.currentLessonId);
   const [isThinking, setIsThinking] = useState<boolean>(false);
 
-  // Chat messages — start fresh so the conversation is always scoped to the current lesson
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Initial pre-seeded conversation showcasing the exact prompt interaction
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: 'msg-seed-1',
+      sender: 'user',
+      timestamp: '09:41 AM',
+      content: 'What is generative AI?'
+    },
+    {
+      id: 'msg-seed-2',
+      sender: 'assistant',
+      timestamp: '09:41 AM',
+      content: '### Understanding Generative AI 🤖\n\n**Generative AI** refers to AI systems that can create new content such as text, images, audio, code, or other forms of media based on patterns learned from existing data.\n\nIn this lesson, the important idea is that **generative AI doesn\'t simply retrieve information — it generates a response based on the context of your request.**\n\n- **Pattern Recognition & Synthesis:** Predicts high-probability tokens within a context window.\n- **Human-in-the-Loop:** Acts as an executive co-pilot rather than an unverified replacement.',
+      actionType: 'explain',
+      contextLessonId: 'lesson-002-01',
+      contextLessonTitle: 'Introduction to Generative AI',
+      suggestions: [
+        'Give me an example',
+        'Simplify this',
+        'Test my knowledge'
+      ]
+    }
+  ]);
 
   // Derive active module & lesson
-  const activeModule = course.modules.find((m) => m.id === activeModuleId) || course.modules[1];
+  const activeModule = course.modules.find((m: { id: any; }) => m.id === activeModuleId) || course.modules[1];
   const activeLesson = activeModule.lessons.find((l) => l.id === activeLessonId) || activeModule.lessons[0];
 
-  // Handle module/lesson navigation — start a fresh conversation for each new topic
+  // Handle module/lesson navigation
   const handleSelectLesson = (moduleId: string, lessonId: string) => {
     setActiveModuleId(moduleId);
     setActiveLessonId(lessonId);
 
-    const targetLesson = course.modules.find((m) => m.id === moduleId)?.lessons.find((l) => l.id === lessonId);
+    const targetModule = course.modules.find((m) => m.id === moduleId);
+    const targetLesson = targetModule?.lessons.find((l) => l.id === lessonId);
 
-    // Clear the conversation when switching to a different lesson
-    // so the user starts fresh on the new topic
     if (targetLesson && targetLesson.id !== activeLessonId) {
-      setMessages([]);
+      // Add a subtle system notification in chat that AI context updated
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `msg-ctx-${Date.now()}`,
+          sender: 'assistant',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          content: `🔄 **Context Synced:** Now viewing **Module ${targetModule?.order}: ${targetLesson.title}**.\n\nFeel free to ask me to explain concepts, simplify topics, or test your knowledge for this lesson!`,
+          contextLessonId: targetLesson.id,
+          contextLessonTitle: targetLesson.title,
+          suggestions: ['Explain this lesson', 'Give me an example', 'Test my knowledge']
+        }
+      ]);
     }
   };
 
@@ -74,7 +100,7 @@ export default function App() {
     }
   };
 
-  // Handle sending a message / triggering an AI action via Gemini 2.5 Flash API
+  // Handle sending a message / triggering an AI action
   const handleSendMessage = async (
     query: string,
     actionType: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge' | 'general' = 'general'
@@ -90,15 +116,8 @@ export default function App() {
     setIsThinking(true);
 
     try {
-      const lmsContext = AiService.buildContextFromLesson(activeLesson, activeModule, learner.id);
-      const responseMsg = await AiService.sendMessage({
-        message: query,
-        actionType,
-        context: lmsContext,
-        conversationHistory: messages
-      });
-
-      setMessages((prev) => [...prev, responseMsg]);
+      const result = await AiSimulatorService.generateResponse(query, actionType, activeLesson);
+      setMessages((prev) => [...prev, result.message]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -106,7 +125,7 @@ export default function App() {
           id: `msg-err-${Date.now()}`,
           sender: 'assistant',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          content: 'Something went wrong while connecting to the AI learning assistant. Please try again.',
+          content: 'Something went wrong while connecting to the lesson context. Please try again.',
           isError: true,
           suggestions: ['Retry question', 'Explain this lesson']
         }
@@ -122,18 +141,18 @@ export default function App() {
   };
 
   return (
-    <LmsLayout
-      course={course}
-      learner={learner}
-      activeModule={activeModule}
-      activeLesson={activeLesson}
-      messages={messages}
-      isThinking={isThinking}
-      onSelectLesson={handleSelectLesson}
-      onSendMessage={handleSendMessage}
-      onResetConversation={handleResetConversation}
-      onNextLesson={handleNextLesson}
-      onPrevLesson={handlePrevLesson}
-    />
+    React.createElement(LmsLayout, {
+      course,
+      learner,
+      activeModule,
+      activeLesson,
+      messages,
+      isThinking,
+      onSelectLesson: handleSelectLesson,
+      onSendMessage: handleSendMessage,
+      onResetConversation: handleResetConversation,
+      onNextLesson: handleNextLesson,
+      onPrevLesson: handlePrevLesson
+    })
   );
 }
