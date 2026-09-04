@@ -30,12 +30,18 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           </div>
         </div>
 
+        {/* Current topic context */}
+        <div className="bg-[#052B66]/5 rounded-xl p-3 border border-[#052B66]/10">
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 mb-1">Currently studying</p>
+          <p className="text-xs sm:text-sm font-bold text-[#052B66] leading-snug">{lesson.title}</p>
+        </div>
+
         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-          I'm your learning companion. I can help you understand this lesson, explore concepts, and test your knowledge.
+          Ask me anything about this topic — I can explain concepts, give examples, simplify ideas, or quiz you.
         </p>
 
         <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-          <span className="font-bold text-[#101828]">What would you like to do?</span>
+          <span className="font-bold text-[#101828]">Get started</span>
           <span className="inline-flex items-center gap-1 text-[11px] text-[#45CC42] font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-[#45CC42] animate-pulse" />
             Ready

@@ -79,12 +79,12 @@ export const AssistantHeader: React.FC<AssistantHeaderProps> = ({
             {isVoiceEnabled ? <Volume2 className="w-4 h-4 text-[#052B66]" /> : <VolumeX className="w-4 h-4" />}
           </button>
 
-          {/* Restart conversation */}
+          {/* New conversation */}
           <button
             onClick={onReset}
             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-            title="Restart conversation"
-            aria-label="Restart conversation"
+            title="New conversation"
+            aria-label="New conversation"
           >
             <RotateCcw className="w-4 h-4" />
           </button>

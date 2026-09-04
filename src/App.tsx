@@ -21,55 +21,24 @@ export default function App() {
   const [activeLessonId, setActiveLessonId] = useState<string>(course.currentLessonId);
   const [isThinking, setIsThinking] = useState<boolean>(false);
 
-  // Initial pre-seeded conversation showcasing prompt interaction
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'msg-seed-1',
-      sender: 'user',
-      timestamp: '09:41 AM',
-      content: 'What is generative AI?'
-    },
-    {
-      id: 'msg-seed-2',
-      sender: 'assistant',
-      timestamp: '09:41 AM',
-      content: '### Understanding Generative AI 🤖\n\n**Generative AI** refers to AI systems that can create new content such as text, images, audio, code, or structured summaries based on patterns learned from existing data.\n\nIn this lesson, the important idea is that **generative AI doesn\'t simply retrieve information — it generates a response based on the context of your request.**\n\n- **Pattern Recognition & Synthesis:** Predicts high-probability tokens within a context window.\n- **Human-in-the-Loop:** Acts as an executive co-pilot rather than an unverified replacement.',
-      actionType: 'explain',
-      contextLessonId: 'lesson-002-01',
-      contextLessonTitle: 'Introduction to Generative AI',
-      suggestions: [
-        'Give me an example',
-        'Simplify this',
-        'Summarise this lesson'
-      ]
-    }
-  ]);
+  // Chat messages — start fresh so the conversation is always scoped to the current lesson
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   // Derive active module & lesson
   const activeModule = course.modules.find((m) => m.id === activeModuleId) || course.modules[1];
   const activeLesson = activeModule.lessons.find((l) => l.id === activeLessonId) || activeModule.lessons[0];
 
-  // Handle module/lesson navigation
+  // Handle module/lesson navigation — start a fresh conversation for each new topic
   const handleSelectLesson = (moduleId: string, lessonId: string) => {
     setActiveModuleId(moduleId);
     setActiveLessonId(lessonId);
 
-    const targetModule = course.modules.find((m) => m.id === moduleId);
-    const targetLesson = targetModule?.lessons.find((l) => l.id === lessonId);
+    const targetLesson = course.modules.find((m) => m.id === moduleId)?.lessons.find((l) => l.id === lessonId);
 
+    // Clear the conversation when switching to a different lesson
+    // so the user starts fresh on the new topic
     if (targetLesson && targetLesson.id !== activeLessonId) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `msg-ctx-${Date.now()}`,
-          sender: 'assistant',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          content: `🔄 **Context Synced:** Now viewing **Module ${targetModule?.order}: ${targetLesson.title}**.\n\nFeel free to ask me to explain concepts, simplify topics, or summarise this lesson!`,
-          contextLessonId: targetLesson.id,
-          contextLessonTitle: targetLesson.title,
-          suggestions: ['Explain this lesson', 'Give me an example', 'Summarise this lesson']
-        }
-      ]);
+      setMessages([]);
     }
   };
 
