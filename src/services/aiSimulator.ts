@@ -7,6 +7,23 @@ export interface AiResponseResult {
 }
 
 export class AiSimulatorService {
+  private static getLessonContextSummary(lesson: Lesson): string {
+    const objectiveText = lesson.learningObjectives && lesson.learningObjectives.length > 0
+      ? lesson.learningObjectives.join('; ')
+      : 'understand the key idea of the lesson';
+
+    const contentText = lesson.contentSections && lesson.contentSections.length > 0
+      ? lesson.contentSections.map((section) => section.body.join(' ')).join(' ')
+      : lesson.description;
+
+    return `${lesson.title}. ${lesson.description}. Key focus: ${objectiveText}. Context: ${contentText}`;
+  }
+
+  private static getLessonTheme(lesson: Lesson): string {
+    const cleanedTitle = lesson.title.replace(/^Welcome to:\s*/i, '').trim();
+    return cleanedTitle || lesson.description || 'this lesson';
+  }
+
   /**
    * Generates initial welcome message for learner
    */
@@ -85,64 +102,75 @@ export class AiSimulatorService {
 
     // 3. Explain Action
     if (actionType === 'explain' || normalizedQuery.includes('explain') || normalizedQuery.includes('what is')) {
+      const lessonTheme = this.getLessonTheme(lesson);
+      const learningObjective = lesson.learningObjectives?.[0] || 'understand the main concept in this lesson';
+
       return {
         message: {
           id: `msg-${Date.now()}`,
           sender: 'assistant',
           timestamp,
-          content: `### Overview: ${lesson.title}\n\n**Generative AI** refers to AI systems that can create new content such as text, images, audio, code, or structured summaries based on patterns learned from existing data.\n\nIn this lesson, the important idea is that **generative AI doesn't simply retrieve information from a database — it generates a tailored response based on the context of your request.**\n\n**Key Takeaways:**\n- **Pattern Synthesis:** It predicts the most appropriate next words (tokens) according to context.\n- **Co-pilot Mindset:** It works best in partnership with human professionals (Human-in-the-loop).\n- **Speed & Structure:** Accelerates initial document drafting by up to 80% while you provide domain review.`,
+          content: `### Overview: ${lesson.title}\n\nThis lesson is centered on **${lessonTheme}**. The main idea is to understand how this topic supports better decisions, creativity, or operational improvement in real practice.\n\n**Why it matters:** ${lesson.description}\n\n**Focus areas:**\n- ${lesson.learningObjectives?.slice(0, 3).join('\n- ') || learningObjective}\n\nIn simple terms, this lesson helps you connect the concept to a practical business or learning situation rather than treating it as abstract theory.`,
           actionType: 'explain',
           contextLessonId: lesson.id,
           contextLessonTitle: lesson.title,
-          suggestions: ['Give me an example', 'Simplify this', 'Test my knowledge', 'How do tokens work?']
+          suggestions: ['Give me an example', 'Simplify this', 'Test my knowledge', 'What should I remember?']
         }
       };
     }
 
     // 4. Simplify Action
     if (actionType === 'simplify' || normalizedQuery.includes('simplify') || normalizedQuery.includes('simple terms') || normalizedQuery.includes('eli5')) {
+      const lessonTheme = this.getLessonTheme(lesson);
+
       return {
         message: {
           id: `msg-${Date.now()}`,
           sender: 'assistant',
           timestamp,
-          content: `### In Simple Terms 💡\n\nThink of traditional search like a **library index**: you look up a book title, and it points you to the exact existing book on the shelf.\n\n**Generative AI** is like an extremely well-read **research assistant sitting right next to you**: you give them notes or a goal, and they immediately write a fresh, customized first draft tailored specifically to your needs.\n\nIt doesn't copy-paste — it crafts a brand new response each time!`,
+          content: `### In Simple Terms 💡\n\nThink of **${lessonTheme}** as the practical idea behind this lesson: you are learning a way to turn information or observation into useful action.\n\nInstead of viewing it as a complicated technical concept, focus on the purpose: how it helps people make better decisions, uncover hidden patterns, or improve outcomes in the real world.\n\nThe key is to connect the concept to the task, the evidence, and the decision you are trying to support.`,
           actionType: 'simplify',
           contextLessonId: lesson.id,
           contextLessonTitle: lesson.title,
-          suggestions: ['Give me an example', 'Test me', 'What is a token?']
+          suggestions: ['Give me an example', 'Test me', 'What should I focus on?']
         }
       };
     }
 
     // 5. Example Action
     if (actionType === 'example' || normalizedQuery.includes('example') || normalizedQuery.includes('case study')) {
+      const lessonTheme = this.getLessonTheme(lesson);
+
       return {
         message: {
           id: `msg-${Date.now()}`,
           sender: 'assistant',
           timestamp,
-          content: `### Workplace Example: Drafting an Internal SOP 🏢\n\n**Scenario:** An HR team at a Johannesburg logistics firm needs to draft an onboarding policy for remote workers.\n\n- **Without GenAI:** The HR specialist spends 4–6 hours drafting from a blank page.\n- **With GenAI Assistance:**\n  1. The specialist inputs: *"Draft a 4-step remote worker onboarding guide adhering to SA BCEA standards with bullet points for IT hardware sign-off."*\n  2. The AI delivers a structured draft in 15 seconds.\n  3. The specialist spends 30 minutes reviewing company-specific rules and finalizing approval.\n\n**Result:** 80% time saved with human domain oversight.`,
+          content: `### Workplace Example: Applying **${lessonTheme}** 🏢\n\n**Scenario:** A team is trying to solve a real work problem and wants to use the ideas from this lesson to make better decisions.\n\n1. They start by identifying the problem, the evidence available, and the outcome they actually want.\n2. They apply the lesson method or principle to organize the information in a clearer way.\n3. They review the result with human judgment before acting on it.\n\n**Why this is useful:** It turns an abstract concept into a practical workflow that improves quality, speed, or decision confidence.`,
           actionType: 'example',
           contextLessonId: lesson.id,
           contextLessonTitle: lesson.title,
-          suggestions: ['Explain how prompts work', 'Test my knowledge', 'Give another example']
+          suggestions: ['Explain the steps', 'Test my knowledge', 'Give another example']
         }
       };
     }
 
     // 6. Summarise Action
     if (actionType === 'summarise' || normalizedQuery.includes('summarise') || normalizedQuery.includes('summary') || normalizedQuery.includes('key points')) {
+      const objectiveText = lesson.learningObjectives && lesson.learningObjectives.length > 0
+        ? lesson.learningObjectives.map((objective) => `- ${objective}`).join('\n')
+        : '- Understand the core idea of the lesson';
+
       return {
         message: {
           id: `msg-${Date.now()}`,
           sender: 'assistant',
           timestamp,
-          content: `### 📌 Executive Lesson Summary\n\n1. **Core Distinction:** Generative AI generates novel contextual outputs; traditional search retrieves static records.\n2. **Mechanism:** Transformer models process numerical tokens and calculate statistical probabilities within a defined context window.\n3. **Workplace Application:** Ideal for drafting, document synthesis, and ideation.\n4. **Critical Rule:** Always verify factual accuracy to prevent hallucinations; maintain strict POPIA data privacy.`,
+          content: `### 📌 Lesson Summary: ${lesson.title}\n\n1. **Main idea:** This lesson is about **${this.getLessonTheme(lesson)}** and how it connects to practical work or learning outcomes.\n2. **Purpose:** It helps you move from theory to action by identifying what matters most in the given context.\n3. **Application:** The lesson is most useful when you connect it to a real problem, opportunity, or decision.\n4. **Success principle:** Use evidence, reflection, and sound judgment to apply the lesson well.\n\n**Key focus points:**\n${objectiveText}`,
           actionType: 'summarise',
           contextLessonId: lesson.id,
           contextLessonTitle: lesson.title,
-          suggestions: ['Start a 5-question Quiz', 'Show Workplace Challenge', 'Explain tokens']
+          suggestions: ['Start a 5-question Quiz', 'Show Workplace Challenge', 'Explain the key concept']
         }
       };
     }
@@ -190,7 +218,7 @@ export class AiSimulatorService {
         id: `msg-${Date.now()}`,
         sender: 'assistant',
         timestamp,
-        content: `Great question regarding **${lesson.title}**!\n\nIn the context of this lesson, this relates directly to how foundational models synthesize information and assist workplace productivity.\n\nGenerative AI serves as an accelerant for drafting, analyzing, and synthesizing information when paired with clear human domain direction.\n\nWould you like me to elaborate with a specific workplace case or test your recall?`,
+        content: `Great question regarding **${lesson.title}**!\n\nThis lesson is specifically about **${this.getLessonTheme(lesson)}**, so the best way to answer is to connect your question to the actual learning goals, evidence, and real-world application in this topic.\n\nThe main takeaway is that this concept is most useful when you apply it thoughtfully to a real problem, decision, or work context.\n\nWould you like me to explain it in more detail, give an example, or test your recall?`,
         suggestions: ['Explain this in detail', 'Give me an example', 'Test my knowledge', 'Simplify']
       }
     };

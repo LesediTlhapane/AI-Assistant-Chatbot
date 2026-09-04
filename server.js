@@ -172,7 +172,7 @@ app.post('/api/chat', async (req, res) => {
       actionInstruction = 'Provide a concise, bulleted executive summary of the current lesson material.';
       break;
     case 'quiz':
-      actionInstruction = 'Formulate a 3 to 5 question interactive quiz check based on the current lesson material.';
+      actionInstruction = 'Create a 3 to 5 question quiz using ONLY the current lesson material. Return ONLY valid JSON with this exact shape: {"intro":"brief encouragement","questions":[{"id":"q1","question":"...","options":[{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],"correctAnswerId":"a","explanation":"...","tip":"..."}]}. Do not mention generative AI unless it is explicitly part of the current lesson material.';
       break;
     case 'challenge':
       actionInstruction = 'Create a practical workplace scenario challenge based on this lesson where the learner must recommend a solution.';
@@ -220,6 +220,20 @@ app.post('/api/chat', async (req, res) => {
     });
   }
 
+  let quizData;
+  if (actionType === 'quiz') {
+    try {
+      const jsonText = replyText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+      const parsedQuiz = JSON.parse(jsonText);
+      if (Array.isArray(parsedQuiz.questions) && parsedQuiz.questions.length > 0) {
+        quizData = { questions: parsedQuiz.questions };
+        replyText = parsedQuiz.intro || `Let's test your understanding of ${context.lessonTitle || 'this lesson'}.`;
+      }
+    } catch (err) {
+      console.warn('[Gemini Quiz Warning] Model did not return valid quiz JSON:', err.message || err);
+    }
+  }
+
   // Generate intelligent suggested next actions
   const suggestions = [
     'Explain in simple terms',
@@ -237,8 +251,10 @@ app.post('/api/chat', async (req, res) => {
       actionType,
       contextLessonId: context.lessonId,
       contextLessonTitle: context.lessonTitle,
-      suggestions
-    }
+      suggestions,
+      ...(quizData ? { quizData } : {})
+    },
+    ...(quizData ? { quizData } : {})
   });
 });
 

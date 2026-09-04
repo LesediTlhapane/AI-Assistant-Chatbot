@@ -1,4 +1,4 @@
-import { ChatMessage, Lesson, Module } from '../types';
+import { ChatMessage, Lesson, Module, QuizQuestion } from '../types';
 import { CrossKnowledgeContext } from './crossKnowledgeService';
 
 export interface ChatApiRequest {
@@ -12,6 +12,12 @@ export interface ChatApiResponse {
   success: boolean;
   message?: ChatMessage;
   error?: string;
+}
+
+interface ChatApiQuizResponse extends ChatApiResponse {
+  quizData?: {
+    questions: QuizQuestion[];
+  };
 }
 
 export class AiService {
@@ -48,7 +54,7 @@ export class AiService {
           body: payload
         });
 
-        const data: ChatApiResponse = await response.json();
+        const data: ChatApiQuizResponse = await response.json();
 
         if (!response.ok || !data.success || !data.message) {
           const errorMsg = data.error || `Server responded with status ${response.status}`;
@@ -59,6 +65,15 @@ export class AiService {
             content: `⚠️ **AI Assistant Notice:** ${errorMsg}`,
             isError: true,
             suggestions: ['Retry question', 'Explain this lesson']
+          };
+        }
+
+        if (data.message && data.quizData) {
+          data.message.quizData = {
+            questions: data.quizData.questions,
+            currentQuestionIndex: 0,
+            userAnswers: {},
+            isSubmitted: false
           };
         }
 

@@ -1,12 +1,9 @@
-// React's type declarations are not currently available in the project.
-// Keep the runtime import working while the dependency is added.
-// @ts-expect-error React is currently untyped in this project.
 import React, { useState } from 'react';
 import { mockCourseData } from './data/mockCourseData';
 import { mockLearner } from './data/mockLearnerData';
 import { Course, LearnerProfile, ChatMessage, Module, Lesson } from './types';
 import { LmsLayout } from './components/layout/LmsLayout';
-import { AiSimulatorService } from './services/aiSimulator';
+import { AiService } from './services/aiService';
 
 export default function App() {
   const [course, setCourse] = useState<Course>(mockCourseData);
@@ -109,8 +106,13 @@ export default function App() {
     setIsThinking(true);
 
     try {
-      const result = await AiSimulatorService.generateResponse(query, actionType, activeLesson);
-      setMessages((prev) => [...prev, result.message]);
+      const responseMessage = await AiService.sendMessage({
+        message: query,
+        actionType,
+        context: AiService.buildContextFromLesson(activeLesson, activeModule, learner.id),
+        conversationHistory: messages
+      });
+      setMessages((prev) => [...prev, responseMessage]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
