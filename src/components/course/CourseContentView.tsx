@@ -36,6 +36,52 @@ export const CourseContentView: React.FC<CourseContentViewProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedTextSnippet, setSelectedTextSnippet] = useState<string | null>(null);
 
+  const introQuote = activeLesson.description || activeLesson.contentSections?.[0]?.body?.[0] || 'Explore this lesson to deepen your understanding.';
+
+  const getVisualPromptLines = (lesson: Lesson) => {
+    const title = lesson.title.toLowerCase();
+
+    if (title.includes('decision-making') || title.includes('analytics')) {
+      return [
+        'How can your team use data to make smarter decisions?',
+        'Which business signal is most valuable in this lesson?',
+        'How would you apply this insight to a real workflow?'
+      ];
+    }
+
+    if (title.includes('opportunity') || title.includes('high-impact') || title.includes('spot and assess')) {
+      return [
+        'Which problem in your work feels most AI-ready?',
+        'How would you assess this opportunity before investing?',
+        'What would make this initiative worth pursuing?' 
+      ];
+    }
+
+    if (title.includes('creative') || title.includes('question') || title.includes('emerge') || title.includes('approach')) {
+      return [
+        'What question would unlock a more creative solution?',
+        'How can you reframe this challenge for better ideas?',
+        'Which new angle could lead to a breakthrough?' 
+      ];
+    }
+
+    if (title.includes('ready') || title.includes('strategy') || title.includes('jump-start')) {
+      return [
+        'What readiness gap is slowing your AI progress?',
+        'Which short-term move would create momentum?',
+        'How would you turn this strategy into action?' 
+      ];
+    }
+
+    return [
+      `What is the key idea behind ${lesson.title}?`,
+      `How does this lesson connect to real work?`,
+      `Which part of this topic would you test first?`
+    ];
+  };
+
+  const visualPromptLines = getVisualPromptLines(activeLesson);
+
   const handleTextSelection = () => {
     const selection = window.getSelection();
     if (selection && selection.toString().trim().length > 5) {
@@ -81,16 +127,16 @@ export const CourseContentView: React.FC<CourseContentViewProps> = ({
 
           {/* Introductory Quote Text matching Kavita Ganesan CrossKnowledge Screenshot */}
           <p className="text-sm sm:text-base text-gray-700 leading-relaxed font-normal italic bg-gray-50 p-4 rounded-xl border-l-4 border-[#002B66]">
-            "In this video Kavita Ganesan introduces the HI-AI Discovery Framework, a method she has created to identify the most relevant and promising AI opportunities. Let's find out why it's important to understand whether an initiative has true potential and how to do so."
+            "{introQuote}"
           </p>
         </div>
 
         {/* 2. Video Player Frame (Matching CrossKnowledge Video & Overlay Badge) */}
         <div className="relative rounded-xl overflow-hidden bg-black shadow-md border border-gray-800">
           
-          {/* Top-Right "5 PTS EARNED" Overlay Badge */}
+          {/* Top-Right lesson points badge */}
           <div className="absolute top-3 right-3 z-10 bg-[#002B66] text-white px-3 py-1 rounded-md shadow-md text-xs font-extrabold tracking-wider border border-white/20">
-            5 PTS EARNED
+            {activeLesson.points || 5} PTS EARNED
           </div>
 
           {/* Video Container Screen */}
@@ -100,19 +146,12 @@ export const CourseContentView: React.FC<CourseContentViewProps> = ({
             <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#45CC42_1px,transparent_1px)] [background-size:20px_20px]" />
 
             {/* Embedded Text Questions on Video Frame matching Screenshot */}
-            <div className="relative z-10 space-y-3.5 max-w-xl text-center leading-snug">
-              <p className="text-sm sm:text-lg font-bold text-white tracking-wide">
-                How can you identify initiatives that are truly AI worthy?
-              </p>
-              <p className="text-sm sm:text-lg font-bold text-white tracking-wide">
-                How can you frame them to bring clarity on their benefits?
-              </p>
-              <p className="text-sm sm:text-lg font-bold text-white tracking-wide">
-                How can you bring in experts to check these initiatives are feasible and ready for implementation?
-              </p>
-              <p className="text-sm sm:text-lg font-bold text-white tracking-wide">
-                How can you score them in order to surface those with the most impact?
-              </p>
+            <div className="relative z-10 space-y-3.5 max-w-4xl text-center leading-snug px-4">
+              {visualPromptLines.map((line, index) => (
+                <p key={`${activeLesson.id}-${index}`} className="text-sm sm:text-xl font-bold text-white tracking-wide">
+                  {line}
+                </p>
+              ))}
             </div>
 
             {/* Play Button Overlay */}
