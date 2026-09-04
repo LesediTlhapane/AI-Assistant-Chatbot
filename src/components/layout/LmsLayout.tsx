@@ -11,7 +11,7 @@ import { CourseSidebar } from '../course/CourseSidebar';
 import { CourseContentView } from '../course/CourseContentView';
 import { AiAssistantPanel } from '../assistant/AiAssistantPanel';
 import { CollapsedAiButton } from '../assistant/CollapsedAiButton';
-import { X, Sparkles, Bot } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 interface LmsLayoutProps {
   course: Course;
@@ -51,9 +51,9 @@ export const LmsLayout: React.FC<LmsLayoutProps> = ({
   };
 
   return (
-    <div id="eStudy-lms-container" className="min-h-screen bg-[#F5F7FA] text-[#101828] flex flex-col font-sans antialiased">
+    <div id="eStudy-lms-container" className="h-screen bg-white text-[#101828] flex flex-col font-sans antialiased overflow-hidden">
       
-      {/* 1. LMS Sticky Navigation Header */}
+      {/* 1. CrossKnowledge Dark Navy Header */}
       <LmsHeader
         course={course}
         learner={learner}
@@ -62,10 +62,10 @@ export const LmsLayout: React.FC<LmsLayoutProps> = ({
         onToggleSidebar={() => setIsSidebarOpenMobile(!isSidebarOpenMobile)}
       />
 
-      {/* 2. Primary 3-Column LMS Layout */}
-      <div className="flex-1 flex overflow-hidden relative max-w-[1920px] mx-auto w-full">
+      {/* 2. Seamless Attached 3-Column Workspace Layout */}
+      <div className="flex-1 flex overflow-hidden relative w-full h-[calc(100vh-3.5rem)]">
         
-        {/* Left: Course Navigation Sidebar */}
+        {/* Left Widget: Module Navigation Sidebar (Attached to Middle) */}
         <CourseSidebar
           course={course}
           activeModuleId={activeModule.id}
@@ -79,21 +79,18 @@ export const LmsLayout: React.FC<LmsLayoutProps> = ({
         {isSidebarOpenMobile && (
           <div
             onClick={() => setIsSidebarOpenMobile(false)}
-            className="fixed inset-0 z-10 bg-black/40 lg:hidden backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 z-10 bg-black/50 lg:hidden backdrop-blur-xs transition-opacity"
             aria-hidden="true"
           />
         )}
 
-        {/* Center: Course Learning Content (Main Viewport) */}
-        <div className={`flex-1 flex flex-col overflow-y-auto bg-white min-w-0 transition-all duration-300 ${
-          isAiOpenDesktop ? 'lg:mr-0' : ''
-        }`}>
+        {/* Middle Widget: Course Learning Content (Attached to Left & Right) */}
+        <div className="flex-1 flex flex-col h-full overflow-y-auto bg-white min-w-0 border-r border-gray-200">
           <CourseContentView
             course={course}
             activeModule={activeModule}
             activeLesson={activeLesson}
             onAskAiAboutTopic={(topic, type) => {
-              // Ensure AI is open
               setIsAiOpenDesktop(true);
               setIsAiOpenMobile(true);
               onSendMessage(topic, type || 'explain');
@@ -103,14 +100,14 @@ export const LmsLayout: React.FC<LmsLayoutProps> = ({
           />
         </div>
 
-        {/* Right: Embedded AI Learning Assistant (Desktop / Tablet) */}
+        {/* Right Widget: AI Learning Assistant Panel (Attached to Middle) */}
         <div
-          className={`hidden lg:block h-[calc(100vh-4rem)] sticky top-16 transition-all duration-300 ease-in-out shrink-0 ${
+          className={`hidden lg:block h-full transition-all duration-300 ease-in-out shrink-0 border-l border-gray-200 bg-white ${
             isAiOpenDesktop
               ? isAiExpanded
-                ? 'w-[560px] xl:w-[640px] opacity-100'
-                : 'w-[360px] xl:w-[400px] opacity-100'
-              : 'w-0 opacity-0 overflow-hidden'
+                ? 'w-[520px] xl:w-[600px] opacity-100'
+                : 'w-[360px] xl:w-[390px] opacity-100'
+              : 'w-0 opacity-0 overflow-hidden border-none'
           }`}
         >
           {isAiOpenDesktop && (
@@ -138,7 +135,7 @@ export const LmsLayout: React.FC<LmsLayoutProps> = ({
 
       {/* 3. Mobile AI Assistant Bottom Sheet / Modal View */}
       {isAiOpenMobile && (
-        <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-t-3xl max-h-[90vh] h-[85vh] w-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 border-t border-gray-200">
             {/* Grab Handle */}
             <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto my-2.5 shrink-0" />
@@ -164,7 +161,7 @@ export const LmsLayout: React.FC<LmsLayoutProps> = ({
       {!isAiOpenMobile && (
         <button
           onClick={() => setIsAiOpenMobile(true)}
-          className="lg:hidden fixed bottom-5 right-5 z-30 bg-[#052B66] text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2 border-2 border-[#45CC42] active:scale-95 transition-transform"
+          className="lg:hidden fixed bottom-5 right-5 z-30 bg-[#002B66] text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2 border-2 border-[#45CC42] active:scale-95 transition-transform"
           aria-label="Open AI Assistant"
         >
           <Bot className="w-5 h-5" />

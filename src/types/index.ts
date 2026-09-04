@@ -8,6 +8,8 @@ export interface Lesson {
   type: 'video' | 'reading' | 'interactive' | 'assessment';
   description: string;
   videoDuration?: string;
+  points?: number;
+  isCompleted?: boolean;
   learningObjectives: string[];
   contentSections: {
     title: string;

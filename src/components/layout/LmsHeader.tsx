@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, BookOpen, Flame, Bell, CheckCircle2, ChevronRight, Menu, Bot } from 'lucide-react';
+import { ChevronLeft, ArrowRightCircle, MoreVertical, Bot } from 'lucide-react';
 import { Course, LearnerProfile } from '../../types';
 
 interface LmsHeaderProps {
@@ -18,94 +18,63 @@ export const LmsHeader: React.FC<LmsHeaderProps> = ({
   onToggleSidebar
 }) => {
   return (
-    <header id="lms-header" className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <header id="lms-header" className="sticky top-0 z-30 bg-[#002B66] text-white shadow-md select-none">
+      <div className="w-full px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
         
-        {/* Left: LMS & eStudy Brand */}
-        <div className="flex items-center gap-3">
+        {/* Left: Navigation Chevron & Module Title */}
+        <div className="flex items-center gap-3 min-w-0">
           <button
-            id="btn-toggle-sidebar-mobile"
             onClick={onToggleSidebar}
-            className="p-2 rounded-lg text-gray-600 hover:text-[#052B66] hover:bg-gray-100 lg:hidden focus:outline-hidden focus:ring-2 focus:ring-[#052B66]"
-            aria-label="Toggle navigation menu"
+            className="p-1 rounded-md text-white/90 hover:text-white hover:bg-white/10 transition-colors focus:outline-none"
+            aria-label="Back to course navigation"
           >
-            <Menu className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
-
-          <div className="flex items-center gap-2.5">
-            {/* eStudy / CrossKnowledge Logo Badge */}
-            <div className="flex items-center gap-2 bg-[#052B66] text-white px-2.5 py-1.5 rounded-lg shadow-xs">
-              <span className="font-extrabold tracking-tight text-sm text-white">eStudy</span>
-              <span className="h-3 w-px bg-white/30"></span>
-              <span className="text-[11px] font-medium text-gray-200 tracking-wide">CrossKnowledge</span>
-            </div>
-
-            <div className="hidden md:flex items-center gap-1.5 text-xs text-gray-500 pl-2 border-l border-gray-200">
-              <span>Courses</span>
-              <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-              <span className="font-semibold text-[#101828] truncate max-w-[200px] xl:max-w-[320px]">
-                {course.title}
-              </span>
-            </div>
+          <div className="flex items-center gap-2 truncate">
+            <h1 className="text-sm sm:text-base font-medium tracking-wide text-white truncate">
+              Module 5: Module 5: {course.title || 'Creative Thinking and AI'}
+            </h1>
           </div>
         </div>
 
-        {/* Center: Overall Progress Tracker */}
-        <div className="hidden sm:flex items-center gap-4 bg-[#F5F7FA] px-3.5 py-1.5 rounded-full border border-gray-200/80">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#052B66]" />
-            <span className="text-xs font-medium text-gray-600">Course Progress:</span>
-            <span className="text-xs font-bold text-[#052B66]">{course.totalProgress}%</span>
-          </div>
-          <div className="w-24 bg-gray-200 h-2 rounded-full overflow-hidden">
-            <div
-              className="bg-[#45CC42] h-full rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${course.totalProgress}%` }}
-            />
-          </div>
-          <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3 text-[#45CC42]" />
-            <span>On Track</span>
+        {/* Center: "PATH" Tab Indicator matching CrossKnowledge LMS */}
+        <div className="hidden md:flex items-center justify-center h-full relative">
+          <div className="flex flex-col items-center justify-center h-full px-5 bg-white/10 border-b-2 border-[#45CC42] cursor-pointer">
+            <div className="w-5 h-5 rounded-full border border-white/80 flex items-center justify-center mb-0.5">
+              <ArrowRightCircle className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-[10px] font-bold tracking-wider text-white uppercase">PATH</span>
           </div>
         </div>
 
-        {/* Right: Learner Info & AI Companion Toggle */}
-        <div className="flex items-center gap-3">
-          {/* Daily Streak */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 rounded-full border border-amber-200 text-amber-800 text-xs font-semibold">
-            <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span>{learner.streakDays} Day Streak</span>
-          </div>
-
-          {/* AI Companion Toggle Button */}
+        {/* Right: Points Circle, Menu, and AI Toggle */}
+        <div className="flex items-center gap-3 shrink-0">
+          
+          {/* AI Learning Assistant Toggle */}
           <button
             id="btn-header-ai-toggle"
             onClick={onToggleAi}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border shadow-2xs ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-xs border ${
               isAiOpen
-                ? 'bg-[#052B66] text-white border-[#052B66]'
-                : 'bg-white text-[#052B66] border-[#052B66]/30 hover:bg-[#052B66]/5'
+                ? 'bg-[#45CC42] text-[#002B66] border-[#45CC42]'
+                : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
             }`}
             aria-label={isAiOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
           >
-            <div className="relative">
-              <Bot className="w-4 h-4" />
-              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-[#45CC42] rounded-full ring-1 ring-white animate-pulse" />
-            </div>
-            <span className="hidden sm:inline">AI Learning Assistant</span>
-            <span className="sm:hidden font-bold">AI</span>
+            <Bot className="w-4 h-4" />
+            <span className="hidden sm:inline">Ask AI</span>
+            <span className="w-2 h-2 rounded-full bg-[#45CC42] animate-pulse" />
           </button>
 
-          {/* Learner Avatar */}
-          <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
-            <div className="w-8 h-8 rounded-full bg-[#052B66] text-white flex items-center justify-center text-xs font-bold ring-2 ring-[#45CC42]/40">
-              {learner.name.charAt(0)}
-            </div>
-            <div className="hidden xl:block text-left">
-              <p className="text-xs font-semibold text-[#101828] leading-tight">{learner.name}</p>
-              <p className="text-[10px] text-gray-500 leading-tight">Learner</p>
-            </div>
+          {/* Points Badge Circle matching Screenshot (e.g. 323) */}
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#001D47] border-2 border-white/30 shadow-inner text-white">
+            <span className="text-xs font-extrabold tracking-tight">323</span>
           </div>
+
+          {/* Overflow Menu Icon */}
+          <button className="p-1 text-white/80 hover:text-white hover:bg-white/10 rounded-md transition-colors">
+            <MoreVertical className="w-5 h-5" />
+          </button>
         </div>
 
       </div>

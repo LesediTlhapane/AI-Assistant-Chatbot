@@ -1,292 +1,176 @@
 import { Course } from '../types';
 
 export const mockCourseData: Course = {
-  id: 'course-ai-essentials',
-  title: 'AI Essentials for Business & Workplace',
-  code: 'ESTUDY-AI-101',
+  id: 'course-creative-thinking-ai',
+  title: 'Creative Thinking and AI',
+  code: 'CK-MODULE-5',
   provider: 'eStudy South Africa (CrossKnowledge LMS)',
-  category: 'Digital Transformation & Emerging Tech',
-  totalProgress: 62,
-  currentModuleId: 'module-002',
-  currentLessonId: 'lesson-002-01',
+  category: 'Innovation & Enterprise AI Strategy',
+  totalProgress: 75,
+  currentModuleId: 'module-005',
+  currentLessonId: 'lesson-005-04',
   modules: [
     {
-      id: 'module-001',
-      order: 1,
-      title: 'Foundations of Artificial Intelligence',
-      description: 'Understand the historical evolution, core terminology, and fundamental principles of machine learning and deep neural networks.',
-      status: 'completed',
-      progress: 100,
-      estimatedTime: '45 mins',
-      lessons: [
-        {
-          id: 'lesson-001-01',
-          order: 1,
-          title: 'The AI Landscape & Evolution',
-          duration: '12 mins',
-          type: 'video',
-          description: 'A comprehensive timeline of AI developments from symbolic systems to deep learning.',
-          learningObjectives: [
-            'Differentiate between Artificial Narrow Intelligence (ANI) and Artificial General Intelligence (AGI)',
-            'Identify key breakthrough moments in machine learning history'
-          ],
-          contentSections: [
-            {
-              title: 'Overview of Machine Intelligence',
-              body: [
-                'Artificial Intelligence represents the capability of computational systems to perform tasks historically requiring human cognition, such as pattern recognition, visual perception, decision-making, and natural language processing.',
-                'Today, nearly all operational implementations are Artificial Narrow Intelligence (ANI)—systems specialized in discrete domains such as predictive analytics, computer vision, and language modeling.'
-              ],
-              keyConcept: {
-                term: 'Artificial Narrow Intelligence (ANI)',
-                definition: 'AI that is trained to perform a specific, focused task with high accuracy (e.g. speech recognition or translation) without general cognitive flexibility.',
-                example: 'Spam filters, recommendation algorithms on streaming services, and medical imaging diagnostics.'
-              }
-            }
-          ],
-          practicalTakeaway: 'Always assess whether a business challenge requires specialized rule-based automation or adaptive machine learning.'
-        },
-        {
-          id: 'lesson-001-02',
-          order: 2,
-          title: 'Machine Learning vs Traditional Software',
-          duration: '18 mins',
-          type: 'reading',
-          description: 'How data-driven algorithms differ from explicit procedural programming.',
-          learningObjectives: [
-            'Understand the shift from explicit coding to learning from data patterns',
-            'Recognize supervised, unsupervised, and reinforcement learning paradigms'
-          ],
-          contentSections: [
-            {
-              title: 'The Paradigm Shift',
-              body: [
-                'In traditional software engineering, developers write explicit business rules (If X, then Y) that execute on input data to produce outputs.',
-                'In Machine Learning, algorithm models ingest historical inputs and known outcomes, discovering underlying mathematical relationships to construct predictive rules automatically.'
-              ]
-            }
-          ],
-          practicalTakeaway: 'High-quality structured training data is the cornerstone of effective ML deployment.'
-        }
-      ]
-    },
-    {
-      id: 'module-002',
-      order: 2,
-      title: 'AI in the Workplace',
-      description: 'Explore how generative AI and cognitive automation transform knowledge work, productivity, communications, and decision-making in modern organizations.',
+      id: 'module-005',
+      order: 5,
+      title: 'Creative Thinking and AI',
+      description: 'Discover how to identify, frame, evaluate, and score high-impact AI opportunities in your organization using the HI-AI Discovery Framework.',
       status: 'in-progress',
-      progress: 78,
-      estimatedTime: '1 hr 15 mins',
+      progress: 75,
+      estimatedTime: '30 mins',
       lessons: [
         {
-          id: 'lesson-002-01',
+          id: 'lesson-005-01',
           order: 1,
-          title: 'Introduction to Generative AI',
-          duration: '15 mins',
-          type: 'video',
-          videoDuration: '04:35',
-          description: 'Discover what generative AI is, how foundational models generate contextual outputs, and why it represents a fundamental leap in knowledge work productivity.',
+          title: 'Use AI-Powered Data Analytics for Decision-Making',
+          duration: '3 mins',
+          type: 'reading',
+          points: 2,
+          isCompleted: true,
+          description: 'Leveraging algorithmic analytics to augment executive decision making.',
           learningObjectives: [
-            'Define generative AI and contrast it with traditional search and database retrieval.',
-            'Explain how Large Language Models (LLMs) predict tokens using learned probability distributions.',
-            'Identify high-impact workplace applications including document drafting, synthesis, and code assistance.',
-            'Recognize the vital role of human oversight (Human-in-the-Loop) and output verification.'
+            'Understand data-driven decision frameworks',
+            'Identify key metrics for AI readiness'
           ],
           contentSections: [
             {
-              title: 'What is Generative AI?',
-              body: [
-                'Generative AI refers to artificial intelligence architectures capable of synthesizing novel content—including coherent text, realistic imagery, audio, structured data, and computer code—based on statistical patterns acquired from vast training datasets.',
-                'Unlike traditional query systems or deterministic databases that merely index, locate, and retrieve static pre-existing records, generative systems dynamically synthesize original responses tailored to the nuanced context of a user prompt.'
-              ],
-              highlightQuote: 'Generative AI does not merely search the internet for an answer—it reasons probabilistically over contextual representations to synthesize an answer tailored to your specific constraint.',
-              keyConcept: {
-                term: 'Generative AI vs. Traditional Search',
-                definition: 'Search retrieves exact documents containing keywords. Generative AI reads the contextual request, analyzes relationships across semantic tokens, and composes a unique, tailored response.',
-                example: 'Searching "leave policy draft" gives you 10 template PDFs. Prompting GenAI generates a customized South African BCEA-compliant draft based on your 20-day annual allowance requirement.'
-              }
-            },
-            {
-              title: 'How Foundational Large Language Models (LLMs) Work',
-              body: [
-                'At the core of modern conversational AI are Transformer architectures. These models process language by converting words into numerical embeddings (tokens) and calculating the statistical probability of subsequent tokens across a multi-dimensional context window.',
-                'Because LLMs operate on statistical likelihood rather than conscious factual reasoning, they can produce convincing yet factually inaccurate statements if context is ambiguous or ungrounded. This phenomenon is known as hallucination.',
-                'In a business setting, this highlights why generative AI functions best as an intelligent co-pilot, augmenting human professionals rather than operating as an unverified autonomous decision-maker.'
-              ],
-              keyConcept: {
-                term: 'Token & Context Window',
-                definition: 'Tokens are the foundational text fragments (approx. 4 characters or 0.75 words) processed by LLMs. The context window is the total span of tokens the model can hold in working memory during a single prompt interaction.',
-                example: 'Providing an executive brief and asking for a summary leverages the context window to ground the model\'s response strictly in your company\'s factual text.'
-              }
-            },
-            {
-              title: 'Key Enterprise Use Cases in the Workplace',
-              body: [
-                '1. Document Synthesis & Summarization: Condensing 50-page RFP bids, financial audits, or client meeting transcripts into structured executive action items in seconds.',
-                '2. First-Draft Generation: Creating initial outlines for proposals, standard operating procedures (SOPs), policy manuals, and email communications.',
-                '3. Cross-Disciplinary Translation & Clarification: Translating complex technical specifications into accessible business language for non-technical stakeholders.',
-                '4. Ideation & Scenario Testing: Stress-testing strategy assumptions by asking the AI to simulate customer counter-arguments or edge cases.'
-              ]
+              title: 'Data Analytics & AI',
+              body: ['Using AI to analyze corporate data and uncover actionable operational insights.']
             }
           ],
-          practicalTakeaway: 'Always apply the 80/20 principle: Use Generative AI to accelerate the initial 80% of content structuring and ideation, then apply human critical judgment and domain expertise to polish and verify the final 20%.'
+          practicalTakeaway: 'Data quality dictates analytical accuracy.'
         },
         {
-          id: 'lesson-002-02',
+          id: 'lesson-005-02',
           order: 2,
-          title: 'Prompt Engineering for Business Teams',
-          duration: '20 mins',
+          title: 'What steps might you take to determine whether a proposed project is truly AI worthy?',
+          duration: '2 min',
           type: 'interactive',
-          description: 'Master practical prompting frameworks (Role, Task, Context, Constraints) to extract precise, professional outputs.',
+          points: 2,
+          isCompleted: false,
+          description: 'Open question exercise to evaluate project feasibility and return on investment.',
           learningObjectives: [
-            'Apply the RTCF framework (Role, Task, Context, Format) to workplace prompts',
-            'Prevent hallucinations through grounded reference documents (few-shot prompting)'
+            'Formulate project screening criteria',
+            'Assess technical and business feasibility'
           ],
           contentSections: [
             {
-              title: 'The Structure of an Effective Workplace Prompt',
-              body: [
-                'Vague instructions yield generic outputs. High-performance enterprise prompting requires clear persona specification, precise objective scoping, unambiguous background context, and explicit formatting constraints.',
-                'By assigning a distinct role (e.g. "Act as a Senior Compliance Officer in South Africa") and defining constraints (e.g. "Use bullet points, max 200 words, cite POPIA guidelines"), the output quality improves by orders of magnitude.'
-              ],
-              keyConcept: {
-                term: 'RTCF Prompt Framework',
-                definition: 'A structured blueprint: Role (who the AI acts as), Task (the precise job), Context (background details and data), Format (desired layout and tone).',
-                example: 'Role: Senior Financial Analyst | Task: Summarize Q3 revenue variance | Context: [Pasted balance sheet] | Format: Markdown table with percentage variances.'
-              }
+              title: 'Evaluating AI Worthiness',
+              body: ['Consider data availability, problem complexity, ROI potential, and operational alignment.']
             }
           ],
-          practicalTakeaway: 'The quality of your AI output is a direct reflection of the clarity and context provided in your prompt.'
+          practicalTakeaway: 'Not all problems require AI; choose projects where pattern synthesis adds strategic value.'
         },
         {
-          id: 'lesson-002-03',
+          id: 'lesson-005-03',
           order: 3,
-          title: 'Workflow Automation & Copilots',
-          duration: '22 mins',
+          title: 'Spot and Assess AI Opportunities',
+          duration: '2 min',
           type: 'reading',
-          description: 'Connecting AI models to spreadsheets, email clients, CRM systems, and workflow engines to automate repetitive operational tasks.',
+          points: 2,
+          isCompleted: true,
+          description: 'Editorial overview of methods for discovering high-value use cases across business units.',
           learningObjectives: [
-            'Identify high-frequency repetitive workflows suited for AI co-pilots',
-            'Distinguish between deterministic RPA and cognitive AI agent workflows'
+            'Spot high-value automation opportunities',
+            'Conduct initial feasibility assessments'
           ],
           contentSections: [
             {
-              title: 'Augmenting Business Processes',
-              body: [
-                'Modern enterprise tools integrate AI directly into Microsoft 365, Google Workspace, Salesforce, and CrossKnowledge LMS platforms.',
-                'Rather than switching between disconnected windows, learners and workers interact with contextual assistants embedded right where the workflow occurs.'
-              ]
+              title: 'Spotting Opportunities',
+              body: ['Look for workflow bottlenecks, repetitive document synthesis, or data-rich manual processes.']
             }
           ],
-          practicalTakeaway: 'Embedded AI reduces context-switching fatigue and preserves cognitive momentum.'
+          practicalTakeaway: 'Start with high-impact, low-complexity pilot projects.'
         },
         {
-          id: 'lesson-002-04',
+          id: 'lesson-005-04',
           order: 4,
-          title: 'Ethics, Data Privacy & Verification',
-          duration: '18 mins',
-          type: 'reading',
-          description: 'Protecting proprietary company data, adhering to POPIA / GDPR, avoiding bias, and establishing verification checklists.',
+          title: 'Find high-impact AI opportunities',
+          duration: '5 min',
+          type: 'video',
+          videoDuration: '05:00',
+          points: 5,
+          isCompleted: true,
+          description: 'In this video Kavita Ganesan introduces the HI-AI Discovery Framework, a method she has created to identify the most relevant and promising AI opportunities. Let\'s find out why it\'s important to understand whether an initiative has true potential and how to do so.',
           learningObjectives: [
-            'Understand data leakage risks when inputting proprietary information into public AI models',
-            'Apply South African POPIA (Protection of Personal Information Act) principles to AI data handling'
+            'Identify initiatives that are truly AI worthy',
+            'Frame AI initiatives to bring clarity on their business benefits',
+            'Engage domain experts to verify feasibility and implementation readiness',
+            'Score and prioritize AI initiatives to surface high-impact opportunities'
           ],
           contentSections: [
             {
-              title: 'Safeguarding Sensitive Enterprise Data',
+              title: 'The HI-AI Discovery Framework',
               body: [
-                'Never paste Personally Identifiable Information (PII), customer banking details, trade secrets, or unreleased financial metrics into public, non-enterprise AI instances that use user inputs for model retraining.',
-                'Ensure your organization utilizes enterprise-tier zero-data-retention agreements and approved internal AI gateways.'
-              ]
+                'The HI-AI (High-Impact AI) Discovery Framework provides a structured 4-step blueprint for enterprise AI adoption:',
+                '1. Identify: Pinpoint operational pain points and bottleneck processes across department workflows.',
+                '2. Frame: Define clear measurable outcomes, ROI targets, and human-in-the-loop governance.',
+                '3. Verify: Conduct technical and data readiness reviews with engineering experts before capital allocation.',
+                '4. Score: Rank candidate projects matrixing business impact against execution complexity.'
+              ],
+              highlightQuote: 'How can you score AI initiatives in order to surface those with the most impact?',
+              keyConcept: {
+                term: 'HI-AI Discovery Framework',
+                definition: 'A 4-step framework created by Kavita Ganesan to identify, frame, verify, and score strategic AI opportunities.',
+                example: 'Scoring a customer support ticket summarizer vs. a complex autonomous supply chain model to choose the highest ROI pilot.'
+              }
             }
           ],
-          practicalTakeaway: 'Always verify claims against primary documentation and treat AI outputs as drafts subject to professional review.'
-        }
-      ]
-    },
-    {
-      id: 'module-003',
-      order: 3,
-      title: 'Applied AI & Automation',
-      description: 'Hands-on implementation of custom GPT agents, knowledge retrieval pipelines (RAG), and data analytics copilots.',
-      status: 'in-progress',
-      progress: 0,
-      estimatedTime: '1 hr 30 mins',
-      lessons: [
-        {
-          id: 'lesson-003-01',
-          order: 1,
-          title: 'Building Custom AI Knowledge Bases (RAG)',
-          duration: '25 mins',
-          type: 'interactive',
-          description: 'How Retrieval-Augmented Generation connects LLMs to internal company PDF archives and knowledge wikis.',
-          learningObjectives: [
-            'Explain the difference between model fine-tuning and retrieval-augmented generation (RAG)',
-            'Map out a document ingestion pipeline for company manuals'
-          ],
-          contentSections: [
-            {
-              title: 'Grounding AI with Enterprise Knowledge',
-              body: [
-                'Retrieval-Augmented Generation (RAG) allows an AI model to consult specific authoritative company documents before answering, eliminating hallucination risks on internal policies.'
-              ]
-            }
-          ],
-          practicalTakeaway: 'RAG is the most cost-effective and secure way to give an AI knowledge about your specific business operations.'
+          practicalTakeaway: 'Always score proposed AI projects by comparing business impact against technical feasibility.'
         },
         {
-          id: 'lesson-003-02',
-          order: 2,
-          title: 'Autonomous Agents & Multi-Step Reasoning',
-          duration: '30 mins',
+          id: 'lesson-005-05',
+          order: 5,
+          title: 'About high-impact AI initiatives (HI-AIs)',
+          duration: '1 min',
           type: 'reading',
-          description: 'How modern AI agents plan, execute tool calls, search web APIs, and coordinate complex multi-step business deliverables.',
-          learningObjectives: [
-            'Define an AI agent loop (Plan -> Act -> Observe -> Reflect)',
-            'Evaluate risks and guardrails for autonomous tool execution'
-          ],
+          points: 1,
+          isCompleted: true,
+          description: 'Editorial guide detailing characteristics of HI-AIs.',
+          learningObjectives: ['Define key characteristics of HI-AIs'],
           contentSections: [
             {
-              title: 'From Chatbots to Autonomous Agents',
-              body: [
-                'While early chatbots simply answered questions in a single turn, modern agents can access calendars, query databases, draft documents, and ask for human confirmation before taking irreversible actions.'
-              ]
+              title: 'Understanding HI-AIs',
+              body: ['High-Impact AI initiatives combine clear business value, data availability, and manageable implementation risk.']
             }
           ],
-          practicalTakeaway: 'Maintain strict human-in-the-loop sign-offs on financial transactions, public communications, and system deletions.'
-        }
-      ]
-    },
-    {
-      id: 'module-004',
-      order: 4,
-      title: 'Responsible AI Governance & Compliance',
-      description: 'Regulatory frameworks, South African AI policies, algorithmic bias auditing, and corporate AI steering committees.',
-      status: 'locked',
-      progress: 0,
-      estimatedTime: '55 mins',
-      lessons: [
+          practicalTakeaway: 'Focus organizational energy on projects that deliver measurable bottom-line value.'
+        },
         {
-          id: 'lesson-004-01',
-          order: 1,
-          title: 'South African & Global AI Regulatory Landscape',
-          duration: '25 mins',
-          type: 'reading',
-          description: 'Understanding the EU AI Act, South African National AI Plan, POPIA compliance, and intellectual property precedents.',
-          learningObjectives: [
-            'Align AI workplace policies with POPIA regulations',
-            'Understand copyright and intellectual property implications for AI-generated works'
-          ],
+          id: 'lesson-005-06',
+          order: 6,
+          title: 'The high-impact AI initiative discovery framework',
+          duration: '1 min',
+          type: 'interactive',
+          points: 1,
+          isCompleted: true,
+          description: 'Interactive learning resource mapping out the discovery pipeline.',
+          learningObjectives: ['Navigate the discovery framework steps'],
           contentSections: [
             {
-              title: 'Regulatory Preparedness',
-              body: [
-                'Organizations must establish an AI Code of Conduct, catalog all shadow AI usage, and implement bias audits across human resource and lending algorithms.'
-              ]
+              title: 'Interactive Framework Map',
+              body: ['Explore each stage of the discovery pipeline from identification to deployment.']
             }
           ],
-          practicalTakeaway: 'Transparency and auditability are foundational to compliant enterprise AI adoption.'
+          practicalTakeaway: 'Use structured frameworks to prevent costly project failures.'
+        },
+        {
+          id: 'lesson-005-07',
+          order: 7,
+          title: 'Step 1: Identify',
+          duration: '1 min',
+          type: 'reading',
+          points: 1,
+          isCompleted: false,
+          description: 'Editorial lesson focusing on Phase 1: Identification.',
+          learningObjectives: ['Master problem identification techniques'],
+          contentSections: [
+            {
+              title: 'Identification Phase',
+              body: ['Interview business unit leaders and audit daily workflows to uncover hidden automation potential.']
+            }
+          ],
+          practicalTakeaway: 'Identify real business pain points before choosing AI technologies.'
         }
       ]
     }
