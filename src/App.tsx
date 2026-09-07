@@ -33,6 +33,7 @@ export default function App() {
     }
   ]);
 
+
   // Handle module/lesson navigation
   const handleSelectLesson = (moduleId: string, lessonId: string) => {
     setActiveModuleId(moduleId);
