@@ -62,7 +62,7 @@ export const LmsHeader: React.FC<LmsHeaderProps> = ({
             aria-label={isAiOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
           >
             <Bot className="w-4 h-4" />
-            <span className="hidden sm:inline">Ask AI</span>
+            <span className="hidden sm:inline">Ask eStudy AI</span>
             <span className="w-2 h-2 rounded-full bg-[#45CC42] animate-pulse" />
           </button>
 

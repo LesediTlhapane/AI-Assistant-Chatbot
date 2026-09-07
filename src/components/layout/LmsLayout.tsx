@@ -165,7 +165,7 @@ export const LmsLayout: React.FC<LmsLayoutProps> = ({
           aria-label="Open AI Assistant"
         >
           <Bot className="w-5 h-5" />
-          <span className="text-xs font-bold pr-1">Ask AI</span>
+          <span className="text-xs font-bold pr-1">Ask eStudy AI</span>
         </button>
       )}
 
