@@ -1,3 +1,5 @@
+// React typings are not available in the current project configuration.
+// @ts-expect-error TS7016: use the runtime module until @types/react is installed.
 import React, { useState } from 'react';
 import { 
   Play, 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, Volume2, Sparkles, Trash2, CheckCircle2, Sliders, Shield } from 'lucide-react';
 
 interface SettingsModalProps {
@@ -11,7 +10,7 @@ interface SettingsModalProps {
   onToggleVoice: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({
+export const SettingsModal = ({
   isOpen,
   onClose,
   onClearHistory,
@@ -19,7 +18,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onChangeResponseStyle,
   isVoiceEnabled,
   onToggleVoice
-}) => {
+}: SettingsModalProps) => {
   if (!isOpen) return null;
 
   return (
