@@ -72,7 +72,7 @@ export interface QuizQuestion {
   options: QuizOption[];
   correctAnswerId: string;
   explanation: string;
-  tip: string;
+  tip?: string;
 }
 
 export interface ChallengeScenario {
@@ -81,7 +81,7 @@ export interface ChallengeScenario {
   scenario: string;
   promptQuestion: string;
   keyConsiderations: string[];
-  sampleGoodAspects: string[];
+  sampleGoodAspects?: string[];
 }
 
 export interface ChallengeEvaluation {
@@ -89,7 +89,7 @@ export interface ChallengeEvaluation {
   strengths: string[];
   areasToImprove: string[];
   expertFeedback: string;
-  recommendedNextStep: string;
+  recommendedNextStep?: string;
 }
 
 export interface ChatMessage {

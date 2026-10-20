@@ -283,4 +283,29 @@ export class AiSimulatorService {
       recommendedNextStep: 'Proceed to Lesson 2: Prompt Engineering for Business Teams to learn how to craft high-precision prompts.'
     };
   }
+
+  static async generateFallbackMessage(
+    query: string,
+    actionType: any = 'general',
+    context?: any
+  ): Promise<ChatMessage> {
+    const lessonTitle = context?.lessonTitle || 'Current Lesson';
+    const fallbackLesson: Lesson = {
+      id: context?.lessonId || 'lesson-005-04',
+      order: 1,
+      title: lessonTitle,
+      duration: '15 min',
+      type: 'reading',
+      description: context?.lessonDescription || 'Learning module material.',
+      learningObjectives: ['Master core competencies and practical application'],
+      contentSections: [{
+        title: lessonTitle,
+        body: [typeof context?.lessonContent === 'string' ? context.lessonContent : 'Active course material.']
+      }],
+      practicalTakeaway: 'Apply key principles in your daily workflow.'
+    };
+    const res = await this.generateResponse(query, actionType, fallbackLesson);
+    return res.message;
+  }
 }
+

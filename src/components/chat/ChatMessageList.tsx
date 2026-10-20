@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { ChatMessage, Lesson } from '../../types';
+import { ChatMessage, AssistantContext } from '../../types/assistant';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ThinkingIndicator } from './ThinkingIndicator';
 
 interface ChatMessageListProps {
   messages: ChatMessage[];
   isThinking: boolean;
-  lesson: Lesson;
+  context?: AssistantContext;
   onSelectSuggestion: (suggestion: string) => void;
   isVoiceEnabled: boolean;
 }
@@ -14,7 +14,7 @@ interface ChatMessageListProps {
 export const ChatMessageList: React.FC<ChatMessageListProps> = ({
   messages,
   isThinking,
-  lesson,
+  context,
   onSelectSuggestion,
   isVoiceEnabled
 }) => {
@@ -30,7 +30,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         <ChatMessageItem
           key={msg.id}
           message={msg}
-          lesson={lesson}
+          context={context}
           onSelectSuggestion={onSelectSuggestion}
           isVoiceEnabled={isVoiceEnabled}
         />

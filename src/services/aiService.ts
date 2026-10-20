@@ -1,10 +1,19 @@
-import { ChatMessage, Lesson, Module, QuizQuestion } from '../types';
+import { 
+  ChatMessage, 
+  Lesson, 
+  Module, 
+  QuizQuestion, 
+  ChallengeScenario, 
+  ChallengeEvaluation 
+} from '../types';
+import { AssistantContext, QuickActionType } from '../types/assistant';
 import { CrossKnowledgeContext } from './crossKnowledgeService';
+import { AiSimulatorService } from './aiSimulator';
 
 export interface ChatApiRequest {
   message: string;
   actionType?: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge' | 'general';
-  context?: CrossKnowledgeContext;
+  context?: CrossKnowledgeContext | AssistantContext;
   conversationHistory?: ChatMessage[];
 }
 
@@ -12,6 +21,7 @@ export interface ChatApiResponse {
   success: boolean;
   message?: ChatMessage;
   error?: string;
+  groqConfigured?: boolean;
 }
 
 interface ChatApiQuizResponse extends ChatApiResponse {
@@ -22,18 +32,16 @@ interface ChatApiQuizResponse extends ChatApiResponse {
 
 export class AiService {
   private static API_URL_ENDPOINTS = [
-    import.meta.env.VITE_API_URL || '/api/chat',
-    'http://localhost:3001/api/chat',
-    'http://localhost:3002/api/chat',
-    'http://localhost:3003/api/chat'
-  ];
+    '/api/chat',
+    import.meta.env.VITE_API_URL || '',
+    'http://localhost:3000/api/chat',
+    'http://localhost:3001/api/chat'
+  ].filter(Boolean);
 
   /**
-   * Sends a user message and lesson context to the backend Gemini API endpoint
+   * Primary call to the backend Groq-powered API
    */
   static async sendMessage(request: ChatApiRequest): Promise<ChatMessage> {
-    let lastNetworkError: any = null;
-
     const payload = JSON.stringify({
       message: request.message,
       actionType: request.actionType || 'general',
@@ -54,45 +62,31 @@ export class AiService {
           body: payload
         });
 
-        const data: ChatApiQuizResponse = await response.json();
-
-        if (!response.ok || !data.success || !data.message) {
-          const errorMsg = data.error || `Server responded with status ${response.status}`;
-          return {
-            id: `msg-err-${Date.now()}`,
-            sender: 'assistant',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            content: `⚠️ **AI Assistant Notice:** ${errorMsg}`,
-            isError: true,
-            suggestions: ['Retry question', 'Explain this lesson']
-          };
+        if (response.ok) {
+          const data: ChatApiQuizResponse = await response.json();
+          if (data.success && data.message) {
+            if (data.quizData && !data.message.quizData) {
+              data.message.quizData = {
+                questions: data.quizData.questions,
+                currentQuestionIndex: 0,
+                userAnswers: {},
+                isSubmitted: false
+              };
+            }
+            return data.message;
+          }
         }
-
-        if (data.message && data.quizData) {
-          data.message.quizData = {
-            questions: data.quizData.questions,
-            currentQuestionIndex: 0,
-            userAnswers: {},
-            isSubmitted: false
-          };
-        }
-
-        return data.message;
       } catch (err: any) {
-        lastNetworkError = err;
-        // Try next endpoint fallback in list
+        // Try next fallback endpoint
       }
     }
 
-    console.error('[AiService Error]: All endpoint attempts failed.', lastNetworkError);
-    return {
-      id: `msg-network-err-${Date.now()}`,
-      sender: 'assistant',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      content: '⚠️ **Backend Server Offline:** Unable to reach the eStudy AI Assistant server.\n\nPlease start the backend server by running:\n```bash\nnpm run dev:server\n```',
-      isError: true,
-      suggestions: ['Retry question', 'Explain this lesson']
-    };
+    // If server endpoints cannot be reached (e.g. offline preview), provide intelligent local response
+    return AiSimulatorService.generateFallbackMessage(
+      request.message,
+      request.actionType || 'general',
+      request.context
+    );
   }
 
   /**
@@ -123,3 +117,31 @@ export class AiService {
     };
   }
 }
+
+/**
+ * Default instance exporting for AiAssistantPanel and PracticalChallenge components
+ */
+export const aiService = {
+  async sendMessage(
+    query: string,
+    context: AssistantContext,
+    actionType: QuickActionType = 'general',
+    history: ChatMessage[] = []
+  ): Promise<ChatMessage> {
+    return AiService.sendMessage({
+      message: query,
+      actionType,
+      context,
+      conversationHistory: history
+    });
+  },
+
+  async evaluateChallenge(
+    submission: string,
+    scenario: ChallengeScenario,
+    _context?: AssistantContext
+  ): Promise<ChallengeEvaluation> {
+    // Evaluate workplace challenge
+    return AiSimulatorService.evaluateChallenge(submission, scenario as any);
+  }
+};

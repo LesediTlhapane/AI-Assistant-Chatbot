@@ -1,107 +1,93 @@
 import { QuizQuestion, ChallengeScenario } from '../types';
 
 export const lessonQuizzes: Record<string, QuizQuestion[]> = {
-  'lesson-002-01': [
+  'lesson-005-04': [
     {
-      id: 'q-01',
-      question: 'Which statement best describes generative AI?',
+      id: 'q1',
+      question: 'What is the primary role of the HI-AI Discovery Framework?',
       options: [
-        { id: 'A', text: 'It only retrieves information from databases.' },
-        { id: 'B', text: 'It generates new content based on learned patterns.' },
-        { id: 'C', text: 'It only analyses numerical data.' },
-        { id: 'D', text: 'It replaces every human decision.' }
+        { id: 'a', text: 'To replace all human managers with autonomous AI agents' },
+        { id: 'b', text: 'To systematically identify, frame, and prioritize high-value AI opportunities' },
+        { id: 'c', text: 'To write raw Python code for neural network training' },
+        { id: 'd', text: 'To eliminate the need for data governance policies' }
       ],
-      correctAnswerId: 'B',
-      explanation: 'Exactly. Generative AI can create new content (text, code, images, summaries) based on statistical patterns learned from training data, rather than just returning pre-stored files.',
-      tip: 'Remember: Traditional search retrieves, while Generative AI synthesizes.'
+      correctAnswerId: 'b',
+      explanation: 'The HI-AI Framework focuses on evaluating business feasibility, value, and readiness before deployment.',
+      tip: 'Remember: Strategy and prioritization precede implementation.'
     },
     {
-      id: 'q-02',
-      question: 'Why can Large Language Models sometimes produce "hallucinations" (factually inaccurate outputs)?',
+      id: 'q2',
+      question: 'Under South African data privacy legislation (POPIA), what must you ensure when using AI tools?',
       options: [
-        { id: 'A', text: 'Because their servers run out of hard disk storage space.' },
-        { id: 'B', text: 'They predict statistically probable token sequences rather than maintaining conscious factual awareness.' },
-        { id: 'C', text: 'Because they intentionally try to mislead users.' },
-        { id: 'D', text: 'They only function when connected to a live calculator.' }
+        { id: 'a', text: 'All personal data must be publicly published on open servers' },
+        { id: 'b', text: 'Zero data retention and proper de-identification of client and employee personal data' },
+        { id: 'c', text: 'Only international vendors can process South African data' },
+        { id: 'd', text: 'POPIA does not apply to digital or AI platforms' }
       ],
-      correctAnswerId: 'B',
-      explanation: 'Spot on! LLMs operate by calculating probability distributions across tokens. When context is ambiguous, they generate the most plausible-sounding sequence, which can occasionally be factually incorrect without grounding.',
-      tip: 'Always keep a Human-in-the-Loop for factual verification in business deliverables.'
+      correctAnswerId: 'b',
+      explanation: 'POPIA requires safeguarding personal identifiable information (PII) and preventing unauthorized processing.',
+      tip: 'Always anonymize client identifiers before using generative AI models.'
     },
     {
-      id: 'q-03',
-      question: 'What is the recommended workplace best practice for using Generative AI in business writing?',
+      id: 'q3',
+      question: 'What does "Human-in-the-Loop" (HITL) mean in enterprise AI workflows?',
       options: [
-        { id: 'A', text: 'Copy and paste AI output directly without reading it.' },
-        { id: 'B', text: 'Use AI to generate first drafts and ideas (80%), then review, verify, and refine with human expertise (20%).' },
-        { id: 'C', text: 'Only use AI for sending legal contracts without review.' },
-        { id: 'D', text: 'Never use AI because it has no workplace utility.' }
+        { id: 'a', text: 'A person must type every single character manually' },
+        { id: 'b', text: 'Qualified human professionals review, verify, and validate AI outputs before final action' },
+        { id: 'c', text: 'AI models can only operate during office hours' },
+        { id: 'd', text: 'Human oversight is optional for high-stakes decisions' }
       ],
-      correctAnswerId: 'B',
-      explanation: 'Great answer! The 80/20 collaborative approach uses GenAI to eliminate the blank-page syndrome and accelerate initial drafting, leaving high-value critical review to the human professional.',
-      tip: 'Human oversight turns rough drafts into compliant, executive-ready work.'
-    },
-    {
-      id: 'q-04',
-      question: 'In the context of Large Language Models, what is a "Context Window"?',
-      options: [
-        { id: 'A', text: 'The physical size of the computer monitor used by the developer.' },
-        { id: 'B', text: 'The total span of tokens (text) the model can hold in memory during an interaction.' },
-        { id: 'C', text: 'A security firewall that blocks internet connections.' },
-        { id: 'D', text: 'The pop-up window in your operating system.' }
-      ],
-      correctAnswerId: 'B',
-      explanation: 'Correct! The context window determines how much conversation history, document text, and instructions the model can keep active in its immediate reasoning scope.',
-      tip: 'Longer context windows allow for analyzing entire lengthy reports in a single prompt.'
-    },
-    {
-      id: 'q-05',
-      question: 'When using public, non-enterprise generative AI tools, what should you avoid entering?',
-      options: [
-        { id: 'A', text: 'General grammar questions and writing improvement requests.' },
-        { id: 'B', text: 'Publicly available information and standard definitions.' },
-        { id: 'C', text: 'Personally Identifiable Information (PII), confidential client data, and unreleased financial records.' },
-        { id: 'D', text: 'Brainstorming topics for team icebreakers.' }
-      ],
-      correctAnswerId: 'C',
-      explanation: 'Excellent! To safeguard privacy and adhere to data protection regulations like POPIA, proprietary or personal data must never be entered into public tools that use prompts for model retraining.',
-      tip: 'Enterprise AI gateways with zero-data retention agreements are essential for sensitive work.'
+      correctAnswerId: 'b',
+      explanation: 'Human verification mitigates hallucination risk and guarantees regulatory and strategic alignment.',
+      tip: 'Never deploy generative outputs directly to clients without human validation.'
     }
   ],
-  'lesson-002-02': [
+  'lesson-002-01': [
     {
-      id: 'q-p1',
-      question: 'What does the "RTCF" framework in prompt engineering stand for?',
+      id: 'q1',
+      question: 'What is a core differentiator of Generative AI compared to traditional search engines?',
       options: [
-        { id: 'A', text: 'Return, Transfer, Cancel, Forward' },
-        { id: 'B', text: 'Role, Task, Context, Format' },
-        { id: 'C', text: 'Read, Type, Check, Finish' },
-        { id: 'D', text: 'Random, Token, Calculate, Formula' }
+        { id: 'a', text: 'Traditional search generates new text, while GenAI only indexes URLs' },
+        { id: 'b', text: 'GenAI synthesizes contextual answers and generates novel artifacts based on probabilistic pattern matching' },
+        { id: 'c', text: 'GenAI is deterministic and always returns identical answers' },
+        { id: 'd', text: 'Search engines do not use algorithms' }
       ],
-      correctAnswerId: 'B',
-      explanation: 'Exact match! Role, Task, Context, and Format give the AI model clear guardrails for high-quality enterprise outputs.',
-      tip: 'Specifying the persona and explicit format constraints prevents generic responses.'
+      correctAnswerId: 'b',
+      explanation: 'Generative AI produces novel content tailored to user prompts rather than merely matching keywords.',
+      tip: 'Think of GenAI as a reasoning and drafting engine rather than an indexed database.'
     }
   ]
 };
 
 export const lessonChallenges: Record<string, ChallengeScenario> = {
-  'lesson-002-01': {
-    id: 'ch-002-01',
-    title: 'Generative AI Workplace Rollout Strategy',
-    scenario: 'Your organisation (a medium-to-large business in South Africa) is preparing to introduce generative AI tools to assist knowledge workers in creating first drafts of internal reports, client communications, and standard operating procedures (SOPs).',
-    promptQuestion: 'As a team lead or project manager, what key factors and guardrails would you recommend the leadership team consider before rolling out this tool across departments?',
+  'lesson-005-04': {
+    id: 'sc-01',
+    title: 'Prioritizing AI Opportunities for Customer Support',
+    scenario: 'A major South African retail enterprise receives 40,000 inquiries monthly. The leadership team wants to apply the HI-AI Discovery Framework to evaluate whether to deploy an intelligent AI resolution agent.',
+    promptQuestion: 'Draft a 3-point recommendation addressing Feasibility, POPIA Compliance, and Human-in-the-Loop Safeguards.',
     keyConsiderations: [
-      'Data privacy & POPIA compliance (preventing sensitive customer/financial data leakage)',
-      'Verification protocols & Human-in-the-Loop policies (addressing hallucinations)',
-      'Employee training on effective prompt engineering and RTCF frameworks',
-      'Clear acceptable use guidelines and transparent AI disclosure'
+      'Data sanitization of account and ID numbers before LLM processing',
+      'Establishing a clear escalation pathway to human customer service agents',
+      'Measuring 30-day first-contact resolution rates and accuracy benchmarks'
     ],
     sampleGoodAspects: [
-      'Mentioned establishing a clear company AI policy and acceptable use guideline.',
-      'Highlighted data privacy and protecting proprietary client information.',
-      'Emphasized mandatory human review before sending or publishing any draft.',
-      'Proposed team training to ensure equitable adoption and effective prompt crafting.'
+      'Explicit reference to POPIA compliance',
+      'Defined fallback to human agents for dispute handling'
+    ]
+  },
+  'lesson-002-01': {
+    id: 'sc-02',
+    title: 'Workplace AI Pilot Governance',
+    scenario: 'Your organization is piloting an internal knowledge assistant for policy and standard operating procedures (SOPs).',
+    promptQuestion: 'How would you structure the roll-out to ensure accurate answers and user trust?',
+    keyConsiderations: [
+      'Document chunking and grounding in verified HR policies',
+      'Training team leaders on prompt construction and spot-checking',
+      'Reviewing queries with low confidence scores'
+    ],
+    sampleGoodAspects: [
+      'Structured pilot rollout with metrics',
+      'Regular feedback loops between employees and AI coordinators'
     ]
   }
 };

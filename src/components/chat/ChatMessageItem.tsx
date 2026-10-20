@@ -6,30 +6,26 @@ import {
   Check, 
   Volume2, 
   Bookmark, 
-  Sparkles, 
-  Lightbulb, 
-  BrainCircuit, 
-  ArrowRight,
-  BookOpen
+  Sparkles 
 } from 'lucide-react';
-import { ChatMessage, Lesson } from '../../types';
+import { ChatMessage, AssistantContext } from '../../types/assistant';
 import { InteractiveQuiz } from '../quiz/InteractiveQuiz';
 import { PracticalChallenge } from '../challenge/PracticalChallenge';
 
 interface ChatMessageItemProps {
   message: ChatMessage;
-  lesson: Lesson;
+  context?: AssistantContext;
   onSelectSuggestion?: (suggestion: string) => void;
   isVoiceEnabled?: boolean;
 }
 
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   message,
-  lesson,
+  context,
   onSelectSuggestion,
   isVoiceEnabled
 }) => {
-  const isUser = message.sender === 'user';
+  const isUser = message.sender === 'user' || message.role === 'learner';
   const [isCopied, setIsCopied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
@@ -179,7 +175,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={handleSpeak}
-                  className="p-1 hover:text-[#052B66] rounded transition-colors"
+                  className="p-1 hover:text-[#052B66] rounded transition-colors cursor-pointer"
                   title="Read aloud"
                   aria-label="Read message aloud"
                 >
@@ -188,7 +184,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
 
                 <button
                   onClick={handleCopy}
-                  className="p-1 hover:text-[#052B66] rounded transition-colors flex items-center gap-0.5"
+                  className="p-1 hover:text-[#052B66] rounded transition-colors flex items-center gap-0.5 cursor-pointer"
                   title="Copy text"
                   aria-label="Copy message text"
                 >
@@ -197,7 +193,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
 
                 <button
                   onClick={() => setIsSaved(!isSaved)}
-                  className={`p-1 rounded transition-colors ${
+                  className={`p-1 rounded transition-colors cursor-pointer ${
                     isSaved ? 'text-amber-500' : 'hover:text-[#052B66]'
                   }`}
                   title={isSaved ? 'Saved to study notes' : 'Save note'}
@@ -221,7 +217,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                 <button
                   key={sIdx}
                   onClick={() => onSelectSuggestion(sug)}
-                  className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white border border-[#052B66]/20 text-[#052B66] hover:bg-[#052B66] hover:text-white hover:border-[#052B66] transition-all shadow-2xs active:scale-95 flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white border border-[#052B66]/20 text-[#052B66] hover:bg-[#052B66] hover:text-white hover:border-[#052B66] transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer"
                 >
                   <Sparkles className="w-3 h-3 text-[#45CC42]" />
                   <span>{sug}</span>

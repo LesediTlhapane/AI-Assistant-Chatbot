@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Bot, Sparkles, AlertCircle, RotateCcw } from 'lucide-react';
+import { AlertCircle, RotateCcw } from 'lucide-react';
 import { 
-  Lesson, 
-  Module, 
-  LearnerProfile, 
+  AssistantContext, 
   ChatMessage, 
-  AssistantMode 
-} from '../../types';
+  QuickActionType 
+} from '../../types/assistant';
+import { aiService } from '../../services/aiService';
 import { AssistantHeader } from './AssistantHeader';
 import { LearnerContextBadge } from './LearnerContextBadge';
 import { QuickActions } from './QuickActions';
@@ -15,45 +14,198 @@ import { ChatMessageList } from '../chat/ChatMessageList';
 import { ChatInput } from './ChatInput';
 import { SettingsModal } from './SettingsModal';
 
-interface AiAssistantPanelProps {
-  learner: LearnerProfile;
-  module: Module;
-  lesson: Lesson;
-  messages: ChatMessage[];
-  isThinking: boolean;
-  onSendMessage: (query: string, actionType?: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge' | 'general') => void;
-  onCollapse: () => void;
-  onResetConversation: () => void;
+export interface AiAssistantPanelProps {
+  /**
+   * LMS context passed from the host LMS (CrossKnowledge / eStudy)
+   */
+  context?: AssistantContext;
+  
+  /**
+   * Optional initial message list
+   */
+  initialMessages?: ChatMessage[];
+
+  /**
+   * Callback when user closes or collapses the panel
+   */
+  onCollapse?: () => void;
+
+  /**
+   * Controlled messages (optional; if not provided, panel maintains internal state)
+   */
+  messages?: ChatMessage[];
+
+  /**
+   * Controlled message handler (optional)
+   */
+  onSendMessage?: (query: string, actionType?: QuickActionType) => void;
+
+  /**
+   * Whether the panel is being rendered in full screen / mobile drawer
+   */
   isMobileDrawer?: boolean;
+
+  /**
+   * Whether panel width is currently expanded
+   */
   isExpanded?: boolean;
+
+  /**
+   * Callback to toggle expanded width
+   */
   onToggleExpand?: () => void;
+
+  /**
+   * Extra container class names
+   */
+  className?: string;
+
+  // Backward compatibility props
+  learner?: any;
+  module?: any;
+  lesson?: any;
+  isThinking?: boolean;
+  onResetConversation?: () => void;
 }
 
+// Sensible default mock context for development/testing
+const DEFAULT_CONTEXT: AssistantContext = {
+  courseId: 'ck-ai-101',
+  courseTitle: 'AI Essentials for Business & Workplace',
+  moduleId: 'mod-02',
+  moduleOrder: 2,
+  moduleTitle: 'AI in the Workplace & Prompting',
+  lessonId: 'les-02-01',
+  lessonTitle: 'Prompt Engineering for Business Teams',
+  lessonDescription: 'Learn structured prompting frameworks (RTCF) to eliminate hallucinations and accelerate drafting.',
+  learnerId: 'usr-889',
+  learnerName: 'John',
+  courseProgress: 45,
+  moduleProgress: 60
+};
+
 export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
+  context,
+  initialMessages = [],
+  onCollapse,
+  messages: externalMessages,
+  onSendMessage: externalSendMessage,
+  isMobileDrawer = false,
+  isExpanded = false,
+  onToggleExpand,
+  className = '',
   learner,
   module,
   lesson,
-  messages,
-  isThinking,
-  onSendMessage,
-  onCollapse,
-  onResetConversation,
-  isMobileDrawer = false,
-  isExpanded = false,
-  onToggleExpand
+  isThinking: externalThinking,
+  onResetConversation
 }) => {
+  // Derive effective context if legacy props passed
+  const activeContext: AssistantContext = context || {
+    courseId: 'ck-ai-101',
+    courseTitle: 'Creative Thinking & Workplace AI',
+    moduleId: module?.id || DEFAULT_CONTEXT.moduleId,
+    moduleOrder: module?.order || DEFAULT_CONTEXT.moduleOrder,
+    moduleTitle: module?.title || DEFAULT_CONTEXT.moduleTitle,
+    lessonId: lesson?.id || DEFAULT_CONTEXT.lessonId,
+    lessonTitle: lesson?.title || DEFAULT_CONTEXT.lessonTitle,
+    lessonDescription: lesson?.description || DEFAULT_CONTEXT.lessonDescription,
+    learnerId: learner?.id || DEFAULT_CONTEXT.learnerId,
+    learnerName: learner?.name || DEFAULT_CONTEXT.learnerName,
+    courseProgress: learner?.courseProgress || DEFAULT_CONTEXT.courseProgress,
+    moduleProgress: module?.progress || DEFAULT_CONTEXT.moduleProgress
+  };
+
+  // Internal state when not externally controlled
+  const [internalMessages, setInternalMessages] = useState<ChatMessage[]>(initialMessages);
+  const [isThinking, setIsThinking] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [responseStyle, setResponseStyle] = useState<'concise' | 'detailed'>('detailed');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const isControlled = externalMessages !== undefined && externalSendMessage !== undefined;
+  const messages = isControlled ? externalMessages : internalMessages;
   const hasMessages = messages.length > 0;
 
-  const handleActionSelect = (
-    actionType: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge',
-    promptText?: string
-  ) => {
-    onSendMessage(promptText || actionType, actionType);
+  const handleSendMessage = async (query: string, actionType: QuickActionType = 'general') => {
+    if (isControlled && externalSendMessage) {
+      externalSendMessage(query, actionType);
+      return;
+    }
+
+    if (!query.trim()) return;
+
+    const userMsg: ChatMessage = {
+      id: `usr-${Date.now()}`,
+      sender: 'user',
+      role: 'learner',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      content: query,
+      actionType,
+      contextLessonId: activeContext.lessonId,
+      contextLessonTitle: activeContext.lessonTitle
+    };
+
+    setInternalMessages((prev) => [...prev, userMsg]);
+    setIsThinking(true);
+    setErrorMessage(null);
+
+    try {
+      const assistantMsg = await aiService.sendMessage(query, activeContext, actionType, [...internalMessages, userMsg]);
+      setInternalMessages((prev) => [...prev, assistantMsg]);
+
+      // Voice read-aloud if enabled
+      if (isVoiceEnabled && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const cleanSpeech = assistantMsg.content.replace(/[#*`_]/g, '');
+        const utterance = new SpeechSynthesisUtterance(cleanSpeech);
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch (err: any) {
+      console.error('Error getting AI response:', err);
+      setErrorMessage('Unable to connect to AI Assistant service. Please try again.');
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
+  const handleResetConversation = () => {
+    setInternalMessages([]);
+    setErrorMessage(null);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  };
+
+  const handleActionSelect = (actionType: QuickActionType, promptText?: string) => {
+    let query = promptText;
+    if (!query) {
+      switch (actionType) {
+        case 'explain':
+          query = `Explain ${activeContext.lessonTitle || 'this lesson'} in structured detail.`;
+          break;
+        case 'simplify':
+          query = `Simplify this lesson in plain, easy-to-understand terms.`;
+          break;
+        case 'example':
+          query = `Provide a real-world workplace example for ${activeContext.lessonTitle || 'this concept'}.`;
+          break;
+        case 'summarise':
+          query = `Summarise the key takeaways of ${activeContext.lessonTitle || 'this lesson'}.`;
+          break;
+        case 'quiz':
+          query = `Test my knowledge on ${activeContext.lessonTitle || 'this lesson'} with a 5-question quiz.`;
+          break;
+        case 'challenge':
+          query = `Start the practical workplace challenge for ${activeContext.lessonTitle || 'this lesson'}.`;
+          break;
+        default:
+          query = 'Help me understand this lesson.';
+      }
+    }
+    handleSendMessage(query, actionType);
   };
 
   return (
@@ -61,13 +213,13 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
       id="ai-assistant-side-panel"
       className={`h-full flex flex-col bg-white border-l border-gray-200 overflow-hidden text-left relative ${
         isMobileDrawer ? 'w-full' : 'w-full'
-      }`}
+      } ${className}`}
       aria-label="eStudy AI Learning Assistant Panel"
     >
-      {/* 1. Header */}
+      {/* 1. Header with Controls */}
       <AssistantHeader
-        onCollapse={onCollapse}
-        onReset={onResetConversation}
+        onCollapse={onCollapse || (() => {})}
+        onReset={handleResetConversation}
         onOpenSettings={() => setIsSettingsOpen(true)}
         isVoiceEnabled={isVoiceEnabled}
         onToggleVoice={() => setIsVoiceEnabled(!isVoiceEnabled)}
@@ -75,8 +227,8 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
         onToggleExpand={onToggleExpand}
       />
 
-      {/* 2. Learner Context Badge (Demonstrates understanding of module & lesson) */}
-      <LearnerContextBadge module={module} lesson={lesson} />
+      {/* 2. Learner Context Badge (Sync indicator) */}
+      <LearnerContextBadge context={activeContext} />
 
       {/* 3. Quick Action Tools Bar */}
       <QuickActions
@@ -84,7 +236,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
         disabled={isThinking}
       />
 
-      {/* 4. Main Scrollable Content (Welcome State vs. Conversation Stream) */}
+      {/* 4. Main Scrollable Conversation & Content Area */}
       <div className="flex-1 overflow-y-auto flex flex-col custom-scrollbar bg-[#F5F7FA]/30">
         {errorMessage && (
           <div className="m-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between gap-2 animate-in fade-in duration-200">
@@ -94,7 +246,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
             </div>
             <button
               onClick={() => setErrorMessage(null)}
-              className="p-1 text-rose-600 hover:bg-rose-100 rounded"
+              className="p-1 text-rose-600 hover:bg-rose-100 rounded cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -103,16 +255,15 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
 
         {!hasMessages ? (
           <WelcomeView
-            learner={learner}
-            lesson={lesson}
+            context={activeContext}
             onSelectAction={handleActionSelect}
           />
         ) : (
           <ChatMessageList
             messages={messages}
             isThinking={isThinking}
-            lesson={lesson}
-            onSelectSuggestion={(sug) => onSendMessage(sug, 'general')}
+            context={activeContext}
+            onSelectSuggestion={(sug) => handleSendMessage(sug, 'general')}
             isVoiceEnabled={isVoiceEnabled}
           />
         )}
@@ -120,17 +271,17 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
 
       {/* 5. Fixed Chat Input */}
       <ChatInput
-        onSendMessage={(text) => onSendMessage(text, 'general')}
+        onSendMessage={(text) => handleSendMessage(text, 'general')}
         disabled={false}
         isThinking={isThinking}
-        lessonTitle={lesson.title}
+        lessonTitle={activeContext.lessonTitle}
       />
 
       {/* 6. Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onClearHistory={onResetConversation}
+        onClearHistory={handleResetConversation}
         responseStyle={responseStyle}
         onChangeResponseStyle={setResponseStyle}
         isVoiceEnabled={isVoiceEnabled}

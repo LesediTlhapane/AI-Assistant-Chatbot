@@ -1,18 +1,19 @@
 import React from 'react';
-import { Sparkles, Compass, BrainCircuit, Bot, ArrowRight, Lightbulb, FileText } from 'lucide-react';
-import { Lesson, LearnerProfile } from '../../types';
+import { Sparkles, Compass, BrainCircuit, Bot, ArrowRight } from 'lucide-react';
+import { AssistantContext, QuickActionType } from '../../types/assistant';
 
 interface WelcomeViewProps {
-  learner: LearnerProfile;
-  lesson: Lesson;
-  onSelectAction: (actionType: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge', promptText?: string) => void;
+  context: AssistantContext;
+  onSelectAction: (actionType: QuickActionType, promptText?: string) => void;
 }
 
 export const WelcomeView: React.FC<WelcomeViewProps> = ({
-  learner,
-  lesson,
+  context,
   onSelectAction
 }) => {
+  const learnerName = context.learnerName || 'John';
+  const lessonTitle = context.lessonTitle || 'Prompt Engineering for Business Teams';
+
   return (
     <div id="ai-assistant-welcome-view" className="p-4 sm:p-5 space-y-4 animate-in fade-in duration-300">
       
@@ -24,7 +25,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-[#101828]">
-              Hi {learner.name} 👋
+              Hi {learnerName} 👋
             </h3>
             <p className="text-[11px] text-gray-500 font-medium">Your learning companion</p>
           </div>
@@ -33,7 +34,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
         {/* Current topic context */}
         <div className="bg-[#052B66]/5 rounded-xl p-3 border border-[#052B66]/10">
           <p className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 mb-1">Currently studying</p>
-          <p className="text-xs sm:text-sm font-bold text-[#052B66] leading-snug">{lesson.title}</p>
+          <p className="text-xs sm:text-sm font-bold text-[#052B66] leading-snug">{lessonTitle}</p>
         </div>
 
         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -57,8 +58,8 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
         
         {/* 1. Explain this lesson */}
         <button
-          onClick={() => onSelectAction('explain', 'Explain this lesson in detail.')}
-          className="w-full text-left p-3 rounded-xl bg-white border border-gray-200 hover:border-[#052B66] hover:bg-[#052B66]/5 transition-all flex items-center justify-between gap-3 group active:scale-[0.99] shadow-2xs"
+          onClick={() => onSelectAction('explain', `Explain ${lessonTitle} in detail.`)}
+          className="w-full text-left p-3 rounded-xl bg-white border border-gray-200 hover:border-[#052B66] hover:bg-[#052B66]/5 transition-all flex items-center justify-between gap-3 group active:scale-[0.99] shadow-2xs cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-[#052B66]/5 text-[#052B66] group-hover:bg-[#052B66] group-hover:text-white transition-colors flex items-center justify-center shrink-0">
@@ -79,7 +80,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
         {/* 2. Give me an example */}
         <button
           onClick={() => onSelectAction('example', 'Give me a practical workplace example.')}
-          className="w-full text-left p-3 rounded-xl bg-white border border-gray-200 hover:border-[#052B66] hover:bg-[#052B66]/5 transition-all flex items-center justify-between gap-3 group active:scale-[0.99] shadow-2xs"
+          className="w-full text-left p-3 rounded-xl bg-white border border-gray-200 hover:border-[#052B66] hover:bg-[#052B66]/5 transition-all flex items-center justify-between gap-3 group active:scale-[0.99] shadow-2xs cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-[#052B66]/5 text-[#052B66] group-hover:bg-[#052B66] group-hover:text-white transition-colors flex items-center justify-center shrink-0">
@@ -100,7 +101,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
         {/* 3. Test my knowledge */}
         <button
           onClick={() => onSelectAction('quiz', 'Test my knowledge with a 5-question quiz.')}
-          className="w-full text-left p-3 rounded-xl bg-white border border-[#45CC42]/40 hover:border-[#45CC42] hover:bg-emerald-50/40 transition-all flex items-center justify-between gap-3 group active:scale-[0.99] shadow-2xs"
+          className="w-full text-left p-3 rounded-xl bg-white border border-[#45CC42]/40 hover:border-[#45CC42] hover:bg-emerald-50/40 transition-all flex items-center justify-between gap-3 group active:scale-[0.99] shadow-2xs cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-emerald-100/70 text-emerald-800 group-hover:bg-[#45CC42] group-hover:text-white transition-colors flex items-center justify-center shrink-0">

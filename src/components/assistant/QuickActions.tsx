@@ -1,17 +1,16 @@
 import React from 'react';
 import { 
   Sparkles, 
-  HelpCircle, 
   Lightbulb, 
   FileText, 
   Award, 
   Compass, 
-  Zap, 
   BrainCircuit 
 } from 'lucide-react';
+import { QuickActionType } from '../../types/assistant';
 
 interface QuickActionsProps {
-  onSelectAction: (actionType: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge') => void;
+  onSelectAction: (actionType: QuickActionType) => void;
   disabled?: boolean;
 }
 
@@ -19,7 +18,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   onSelectAction,
   disabled = false
 }) => {
-  const actions = [
+  const actions: { id: QuickActionType; label: string; icon: any; color: string; bg: string }[] = [
     {
       id: 'explain',
       label: 'Explain',
@@ -62,7 +61,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       color: 'hover:border-[#052B66] hover:bg-blue-50 text-[#052B66] font-bold',
       bg: 'bg-blue-50/50 border-blue-200'
     }
-  ] as const;
+  ];
 
   return (
     <div id="ai-quick-actions-bar" className="px-3.5 py-2 bg-white border-b border-gray-100 shrink-0">
@@ -77,7 +76,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
               key={act.id}
               onClick={() => onSelectAction(act.id)}
               disabled={disabled}
-              className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-gray-200 shadow-2xs transition-all disabled:opacity-50 disabled:cursor-not-allowed ${act.bg} ${act.color} active:scale-95`}
+              className={`shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-gray-200 shadow-2xs transition-all disabled:opacity-50 disabled:cursor-not-allowed ${act.bg} ${act.color} active:scale-95 cursor-pointer`}
               aria-label={`Run ${act.label} learning action`}
             >
               <Icon className="w-3 h-3 text-[#45CC42]" />
