@@ -95,7 +95,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               e.target.style.height = `${Math.min(e.target.scrollHeight, 100)}px`;
             }}
             onKeyDown={handleKeyDown}
-            placeholder={lessonTitle ? `Ask anything about ${lessonTitle}...` : "Ask anything about this lesson..."}
+            placeholder={lessonTitle ? `Ask anything about ${lessonTitle}...` : 'Ask me anything...'}
             disabled={disabled || isThinking}
             className="w-full max-h-24 bg-transparent px-3 py-2 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-hidden resize-none leading-relaxed"
             aria-label="Ask the AI learning assistant a question"

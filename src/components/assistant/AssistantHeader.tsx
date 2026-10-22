@@ -1,6 +1,5 @@
 import React from 'react';
 import { 
-  Bot, 
   Sparkles, 
   X, 
   RotateCcw, 
@@ -11,9 +10,10 @@ import {
   Minimize2,
   ChevronRight 
 } from 'lucide-react';
+import { AssistantLogo } from './AssistantLogo';
 
 interface AssistantHeaderProps {
-  onCollapse: () => void;
+  onCollapse?: () => void;
   onReset: () => void;
   onOpenSettings: () => void;
   isVoiceEnabled: boolean;
@@ -37,13 +37,13 @@ export const AssistantHeader: React.FC<AssistantHeaderProps> = ({
         {/* Left: AI Avatar & Title & Tagline */}
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="relative">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#052B66] to-[#0A4B9F] flex items-center justify-center text-white shadow-2xs">
-              <Bot className="w-4 h-4 text-[#45CC42]" />
+            <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-2xs overflow-hidden">
+              <AssistantLogo className="w-full h-full" />
             </div>
             {/* Online Indicator */}
             <span
               className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#45CC42] border-2 border-white rounded-full"
-              title="Online and synced"
+              title="Assistant online"
             />
           </div>
 
@@ -111,15 +111,16 @@ export const AssistantHeader: React.FC<AssistantHeaderProps> = ({
             </button>
           )}
 
-          {/* Collapse Panel */}
-          <button
-            onClick={onCollapse}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors ml-0.5"
-            title="Collapse assistant"
-            aria-label="Collapse assistant"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors ml-0.5"
+              title="Collapse assistant"
+              aria-label="Collapse assistant"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot } from 'lucide-react';
+import { AssistantLogo } from './AssistantLogo';
 
 interface CollapsedAiButtonProps {
   onClick: () => void;
@@ -18,8 +18,8 @@ export const CollapsedAiButton: React.FC<CollapsedAiButtonProps> = ({
       aria-label="Open eStudy AI Learning Assistant"
     >
       <div className="relative">
-        <div className="flex h-10 w-15 items-center justify-center rounded-full bg-[#052B66]">
-          <Bot className="h-5 w-5 text-[#45CC42]" />
+        <div className="flex h-10 w-15 items-center justify-center overflow-hidden rounded-full bg-white">
+          <AssistantLogo className="h-full w-full" />
         </div>
         <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#45CC42]" />
       </div>

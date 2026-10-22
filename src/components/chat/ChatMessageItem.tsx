@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Bot, 
   User, 
   Copy, 
   Check, 
@@ -11,6 +10,7 @@ import {
 import { ChatMessage, AssistantContext } from '../../types/assistant';
 import { InteractiveQuiz } from '../quiz/InteractiveQuiz';
 import { PracticalChallenge } from '../challenge/PracticalChallenge';
+import { AssistantLogo } from '../assistant/AssistantLogo';
 
 interface ChatMessageItemProps {
   message: ChatMessage;
@@ -126,13 +126,13 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
     >
       {/* Avatar */}
       <div
-        className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs shrink-0 shadow-2xs ${
+        className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs shrink-0 shadow-2xs overflow-hidden ${
           isUser
             ? 'bg-[#052B66] text-white ring-2 ring-[#45CC42]/30'
-            : 'bg-gradient-to-tr from-[#052B66] to-[#0A4B9F] text-white'
+            : 'bg-white'
         }`}
       >
-        {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-4 h-4" />}
+        {isUser ? <User className="w-3.5 h-3.5" /> : <AssistantLogo className="w-full h-full" />}
       </div>
 
       {/* Bubble Container */}

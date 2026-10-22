@@ -1,14 +1,16 @@
 import Groq from 'groq-sdk';
 import { ESTUDY_SYSTEM_PROMPT } from '../server/systemPrompt.js';
+import { retrieveKnowledge } from '../server/knowledgeBase.js';
+import { summarizeModule } from '../server/moduleSummary.js';
 
-const PRIMARY_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-const MODELS = [
+const PRIMARY_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
+const MODELS = Array.from(new Set([
   PRIMARY_MODEL,
-  'llama-3.3-70b-versatile',
-  'llama-3.1-8b-instant',
-  'mixtral-8x7b-32768',
-  'gemma2-9b-it'
-];
+  'openai/gpt-oss-20b',
+  'openai/gpt-oss-120b',
+  'qwen/qwen3.8-27b',
+  'allam-2-7b'
+]));
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -36,38 +38,37 @@ export default async function handler(req, res) {
   }
 
   if (!apiKey || apiKey === 'your_groq_api_key_here' || apiKey.trim() === '') {
-    return res.status(200).json({
-      success: true,
-      message: {
-        id: `msg-pending-${Date.now()}`,
-        sender: 'assistant',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        content: `⚡ **Groq LLM Engine Configured (${PRIMARY_MODEL})**\n\nThe chat engine is configured to use **Groq** with \`${PRIMARY_MODEL}\`.\n\nPlease set \`GROQ_API_KEY\` in your environment variables to enable live completions.`,
-        actionType,
-        contextLessonId: context.lessonId,
-        contextLessonTitle: context.lessonTitle,
-        suggestions: ['How does Groq work?', 'Check API status', 'Explain this lesson']
-      },
-      groqConfigured: false
+    return res.status(503).json({
+      success: false,
+      error: 'The AI service is not configured. Set GROQ_API_KEY on the server to enable knowledge-based answers.',
+      groqConfigured: false,
     });
   }
 
   try {
     const safeContext = {
-      courseName: context.courseName || context.courseTitle || 'eStudy South Africa Course',
-      moduleName: context.moduleName || context.moduleTitle || 'Current Module',
-      lessonTitle: context.lessonTitle || 'Current Lesson',
-      lessonContent: context.lessonContent || '',
+      courseName: context.courseName || context.courseTitle,
+      moduleName: context.moduleName || context.moduleTitle,
+      lessonTitle: context.lessonTitle,
     };
+    const knowledge = await retrieveKnowledge(message.trim(), {
+      ...context,
+      lessonDescription: undefined,
+    });
+    const knowledgePrompt = knowledge.snippets.length > 0
+      ? knowledge.snippets.map(({ source, content }) => `[Source: ${source}]\n${content}`).join('\n\n')
+      : 'No relevant excerpts were found in the Module 1–3 knowledge base.';
 
     const actionInstructions = {
-      explain: 'Explain the topic clearly, step by step. Never use LaTeX.',
-      simplify: 'Explain the topic in very simple language with a relatable South African workplace analogy. Never use LaTeX.',
-      example: 'Give a practical example and explain how it works. Never use LaTeX.',
-      summarise: 'Summarise the relevant learning material in concise bullet points. Never use LaTeX.',
-      quiz: 'Create a short practice quiz based on the supplied course material. Return strictly valid JSON with {"intro":"...","questions":[{"id":"q1","question":"...","options":[{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],"correctAnswerId":"a","explanation":"...","tip":"..."}]}.',
-      challenge: 'Give the learner a practical challenge based on the course material.',
-      general: 'Answer the learner’s question using the available course context. Follow all system prompt instructions.',
+      explain: 'Explain the topic clearly, step by step, using only the supplied knowledge-base excerpts. Never use LaTeX.',
+      simplify: 'Explain the topic in simple language using only the supplied knowledge-base excerpts. Never use LaTeX.',
+      example: 'Give an example grounded in the supplied excerpts and label illustrative details. Never use LaTeX.',
+      summarise: knowledge.isModuleSummary
+        ? 'Create a brief but comprehensive summary of the supplied module content, covering its major concepts and key takeaways. Never ask the learner to narrow the request. Never use LaTeX.'
+        : 'Summarise the relevant knowledge-base excerpts in concise bullet points. Never use LaTeX.',
+      quiz: 'Create a short practice quiz using only the supplied excerpts. Return strictly valid JSON with {"intro":"...","questions":[{"id":"q1","question":"...","options":[{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],"correctAnswerId":"a","explanation":"...","tip":"..."}]}.',
+      challenge: 'Give the learner a practical challenge based only on the supplied knowledge-base excerpts.',
+      general: 'Answer using only the supplied knowledge-base excerpts. If they do not support an answer, say the provided modules do not cover it.',
     };
 
     const historyMessages = Array.isArray(conversationHistory)
@@ -82,15 +83,13 @@ COURSE: ${safeContext.courseName}
 MODULE: ${safeContext.moduleName}
 LESSON: ${safeContext.lessonTitle}
 
-COURSE MATERIAL:
-${
-  typeof safeContext.lessonContent === 'string'
-    ? safeContext.lessonContent.slice(0, 3000)
-    : JSON.stringify(safeContext.lessonContent).slice(0, 3000)
-}
+AUTHORITATIVE KNOWLEDGE-BASE EXCERPTS:
+${knowledgePrompt}
 
 INSTRUCTION:
-${actionInstructions[actionType] || actionInstructions.general}
+${knowledge.isModuleSummary
+    ? 'Create a brief but comprehensive summary of the supplied module content, covering its major concepts and key takeaways. Never ask the learner to narrow the request. Never use LaTeX.'
+    : actionInstructions[actionType] || actionInstructions.general}
 
 LEARNER'S QUESTION:
 ${message.trim()}
@@ -100,23 +99,31 @@ ${message.trim()}
     let answer = '';
     let lastError;
 
-    for (const model of MODELS) {
+    if (knowledge.isModuleSummary) {
       try {
-        const result = await groq.chat.completions.create({
-          model,
-          messages: [
-            { role: 'system', content: ESTUDY_SYSTEM_PROMPT },
-            ...historyMessages,
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.2,
-          max_tokens: 2048,
-        }, { timeout: 45000 });
-
-        answer = result.choices[0]?.message?.content || '';
-        if (answer.trim()) break;
+        answer = await summarizeModule(knowledge.snippets, groq, MODELS);
       } catch (error) {
         lastError = error;
+      }
+    } else {
+      for (const model of MODELS) {
+        try {
+          const result = await groq.chat.completions.create({
+            model,
+            messages: [
+              { role: 'system', content: ESTUDY_SYSTEM_PROMPT },
+              ...historyMessages,
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.2,
+            max_tokens: 2048,
+          }, { timeout: 45000 });
+
+          answer = result.choices[0]?.message?.content || '';
+          if (answer.trim()) break;
+        } catch (error) {
+          lastError = error;
+        }
       }
     }
 

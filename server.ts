@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import Groq from 'groq-sdk';
 import { createServer as createViteServer } from 'vite';
 import { ESTUDY_SYSTEM_PROMPT } from './server/systemPrompt.js';
+import { getKnowledgeBaseStatus, retrieveKnowledge } from './server/knowledgeBase.js';
+import { summarizeModule } from './server/moduleSummary.js';
 
 // Load environment variables
 dotenv.config();
@@ -15,16 +17,17 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
-const PRIMARY_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const PRIMARY_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 
 // Candidate fallback Groq models
 const MODEL_FALLBACK_CHAIN = Array.from(new Set([
   PRIMARY_MODEL,
-  'llama-3.3-70b-versatile',
-  'llama-3.1-8b-instant',
-  'mixtral-8x7b-32768',
-  'gemma2-9b-it'
+  'openai/gpt-oss-20b',
+  'openai/gpt-oss-120b',
+  'qwen/qwen3.8-27b',
+  'allam-2-7b'
 ]));
+let knowledgeBaseStatus = { moduleCount: 0, sectionCount: 0, modules: [] as string[] };
 
 app.use(express.json({ limit: '2mb' }));
 
@@ -70,7 +73,8 @@ app.get('/api/health', (req, res) => {
     assistant: 'AI BEE Champ / eStudy Learning Assistant',
     provider: 'Groq',
     primaryModel: PRIMARY_MODEL,
-    groqConfigured: hasGroqKey
+    groqConfigured: hasGroqKey,
+    knowledgeBase: { status: 'ready', ...knowledgeBaseStatus }
   });
 });
 
@@ -90,24 +94,15 @@ app.post('/api/chat', async (req, res) => {
 
   // If GROQ_API_KEY is not yet provided
   if (!groq) {
-    return res.status(200).json({
-      success: true,
-      message: {
-        id: `msg-groq-pending-${Date.now()}`,
-        sender: 'assistant',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        content: `⚡ **Groq LLM Engine Configured (${PRIMARY_MODEL})**\n\nThe assistant backend has been switched to **Groq**.\n\nTo activate live Groq completions, configure your API key in your \`.env\` file:\n\`\`\`bash\nGROQ_API_KEY="gsk_..."\n\`\`\`\n\n*(Waiting for GROQ_API_KEY to start live inference)*`,
-        actionType,
-        contextLessonId: context.lessonId,
-        contextLessonTitle: context.lessonTitle,
-        suggestions: ['How does Groq work?', 'Check API status', 'Explain this lesson']
-      },
+    return res.status(503).json({
+      success: false,
+      error: 'The AI service is not configured. Set GROQ_API_KEY on the server to enable knowledge-based answers.',
       groqConfigured: false
     });
   }
 
-  // 1. Build Context
-  let contextPrompt = '=== CURRENT LEARNER CONTEXT ===\n';
+  // LMS metadata helps select relevant course material but is not used as a factual source.
+  let contextPrompt = '=== LMS TOPIC HINTS ===\n';
   if (context.courseName || context.courseTitle) {
     contextPrompt += `Course: ${context.courseName || context.courseTitle} (${context.courseId || 'N/A'})\n`;
   }
@@ -117,16 +112,16 @@ app.post('/api/chat', async (req, res) => {
   if (context.lessonTitle) {
     contextPrompt += `Lesson: ${context.lessonTitle} (${context.lessonId || 'N/A'})\n`;
   }
-  if (context.lessonDescription) {
-    contextPrompt += `Description: ${context.lessonDescription}\n`;
-  }
-  if (context.lessonContent) {
-    const sanitizedContent = typeof context.lessonContent === 'string' 
-      ? context.lessonContent.slice(0, 3000) 
-      : JSON.stringify(context.lessonContent).slice(0, 3000);
-    contextPrompt += `Lesson Material:\n"${sanitizedContent}"\n`;
-  }
   contextPrompt += '===============================\n\n';
+  const knowledge = await retrieveKnowledge(
+    sanitizedMessage,
+    { ...context, lessonDescription: undefined }
+  );
+  const knowledgePrompt = knowledge.snippets.length > 0
+    ? knowledge.snippets.map((snippet: { source: string; content: string }, index: number) =>
+      `[Source ${index + 1}: ${snippet.source}]\n${snippet.content}`
+    ).join('\n\n')
+    : 'No relevant excerpts were found in the Module 1–3 knowledge base.';
 
   // 2. Build History
   const recentHistory = Array.isArray(conversationHistory) ? conversationHistory.slice(-6) : [];
@@ -144,60 +139,71 @@ app.post('/api/chat', async (req, res) => {
   let actionInstruction = '';
   switch (actionType) {
     case 'explain':
-      actionInstruction = 'Provide a structured, easy-to-understand explanation of the concept based on the current lesson material. Use clear headings and bullet points. Never use LaTeX.';
+      actionInstruction = 'Provide a structured, easy-to-understand explanation using only the supplied knowledge-base excerpts. Use clear headings and bullet points. Never use LaTeX.';
       break;
     case 'simplify':
-      actionInstruction = 'Explain the key concept in plain, simple terms using a relatable South African workplace analogy. Never use LaTeX.';
+      actionInstruction = 'Explain the key concept in plain, simple terms using only the supplied knowledge-base excerpts. Never use LaTeX.';
       break;
     case 'example':
-      actionInstruction = 'Give a realistic South African workplace practical example illustrating how this lesson concept applies in day-to-day operations. Never use LaTeX.';
+      actionInstruction = 'Give a practical example grounded in the supplied knowledge-base excerpts. Make clear which details are illustrative. Never use LaTeX.';
       break;
     case 'summarise':
-      actionInstruction = 'Provide a concise, bulleted executive summary of the current lesson material. Never use LaTeX.';
+      actionInstruction = 'Provide a concise, bulleted summary of the relevant supplied knowledge-base excerpts. Never use LaTeX.';
       break;
     case 'quiz':
-      actionInstruction = 'Create a 3 to 5 question quiz using ONLY the current lesson material. Return ONLY valid JSON with this exact shape: {"intro":"brief encouragement","questions":[{"id":"q1","question":"...","options":[{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],"correctAnswerId":"a","explanation":"...","tip":"..."}]}. Do not wrap in markdown quotes if possible, return strictly parseable JSON.';
+      actionInstruction = 'Create a 3 to 5 question quiz using ONLY the supplied knowledge-base excerpts. Return ONLY valid JSON with this exact shape: {"intro":"brief encouragement","questions":[{"id":"q1","question":"...","options":[{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],"correctAnswerId":"a","explanation":"...","tip":"..."}]}. Do not wrap in markdown quotes if possible, return strictly parseable JSON.';
       break;
     case 'challenge':
-      actionInstruction = 'Create a practical workplace scenario challenge based on this lesson where the learner must recommend a structured solution.';
+      actionInstruction = 'Create a practical learning challenge based only on the supplied knowledge-base excerpts.';
       break;
     default:
-      actionInstruction = 'Respond thoughtfully to the learner query using the current lesson material as context. Follow all instructions in the system prompt.';
+      actionInstruction = 'Answer the learner question using only the supplied knowledge-base excerpts. If they do not support an answer, say that the provided modules do not cover it.';
+  }
+  if (knowledge.isModuleSummary) {
+    actionInstruction = 'Create a brief but comprehensive summary of the supplied module content, covering its major concepts and key takeaways. Never ask the learner to narrow the request. Never use LaTeX.';
   }
 
-  const prompt = `${contextPrompt}Instruction: ${actionInstruction}\nLearner Question/Prompt: "${sanitizedMessage}"`;
+  const prompt = `${contextPrompt}KNOWLEDGE-BASE EXCERPTS:\n${knowledgePrompt}\n\nInstruction: ${actionInstruction}\nLearner Question/Prompt: "${sanitizedMessage}"`;
 
   let lastError: any = null;
   let replyText: string | null = null;
 
-  for (const targetModel of MODEL_FALLBACK_CHAIN) {
+  if (knowledge.isModuleSummary) {
     try {
-      console.log(`[Groq Request] Attempting chat completion with model: ${targetModel}...`);
-      const response = await groq.chat.completions.create({
-        model: targetModel,
-        messages: [
-          {
-            role: 'system',
-            content: ESTUDY_SYSTEM_PROMPT
-          },
-          ...historyMessages,
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.2,
-        max_tokens: 2048
-      }, { timeout: 45000 });
-
-      if (response && response.choices && response.choices[0]?.message?.content) {
-        replyText = response.choices[0].message.content;
-        console.log(`[Groq Request] Success with model: ${targetModel}`);
-        break;
-      }
+      replyText = await summarizeModule(knowledge.snippets, groq, MODEL_FALLBACK_CHAIN);
     } catch (err: any) {
       lastError = err;
-      console.warn(`[Groq Request Warning] Model ${targetModel} error:`, err?.message || err);
+    }
+  } else {
+    for (const targetModel of MODEL_FALLBACK_CHAIN) {
+      try {
+        console.log(`[Groq Request] Attempting chat completion with model: ${targetModel}...`);
+        const response = await groq.chat.completions.create({
+          model: targetModel,
+          messages: [
+            {
+              role: 'system',
+              content: ESTUDY_SYSTEM_PROMPT
+            },
+            ...historyMessages,
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 2048
+        }, { timeout: 45000 });
+
+        if (response && response.choices && response.choices[0]?.message?.content) {
+          replyText = response.choices[0].message.content;
+          console.log(`[Groq Request] Success with model: ${targetModel}`);
+          break;
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`[Groq Request Warning] Model ${targetModel} error:`, err?.message || err);
+      }
     }
   }
 
@@ -248,6 +254,8 @@ app.post('/api/chat', async (req, res) => {
 
 // Setup Vite middleware or static serving
 async function setupVite() {
+  knowledgeBaseStatus = await getKnowledgeBaseStatus();
+
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'dist')));
     app.get('*', (req, res) => {
@@ -261,16 +269,32 @@ async function setupVite() {
     app.use(vite.middlewares);
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`=================================================`);
-    console.log(` AI BEE Champ & eStudy AI Assistant Running`);
-    console.log(` Powered by Groq (${PRIMARY_MODEL})`);
-    console.log(` Port: http://localhost:${PORT}`);
-    console.log(` API Endpoint: http://localhost:${PORT}/api/chat`);
-    console.log(`=================================================`);
-  });
+  const listen = (port: number) => {
+    const server = app.listen(port, '0.0.0.0', () => {
+      console.log(`=================================================`);
+      console.log(` AI BEE Champ & eStudy AI Assistant Running`);
+      console.log(` Powered by Groq (${PRIMARY_MODEL})`);
+      console.log(` Port: http://localhost:${port}`);
+      console.log(` API Endpoint: http://localhost:${port}/api/chat`);
+      console.log(`=================================================`);
+    });
+
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        console.warn(`[Port ${port} is in use. Retrying on port ${port + 1}...]`);
+        listen(port + 1);
+        return;
+      }
+
+      console.error('[Server Error]:', err);
+      process.exitCode = 1;
+    });
+  };
+
+  listen(PORT);
 }
 
 setupVite().catch((err) => {
   console.error('Failed to start server:', err);
+  process.exitCode = 1;
 });

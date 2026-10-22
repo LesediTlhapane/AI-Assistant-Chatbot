@@ -54,32 +54,23 @@ The eStudy AI Assistant helps approximately 1,800 enrolled learners master their
 
 ---
 
-## ⚙️ Environment Variables Setup
+## Environment Variables
 
-Copy `.env.example` to `.env`:
-
-```bash
-cp .env.example .env
-```
-
-Set the following environment variables:
+Set these variables in your local `.env` file for development:
 
 ```env
-# Required for Gemini AI API calls (Server-side ONLY)
-GEMINI_API_KEY=your_actual_gemini_api_key
-
-# Configurable Gemini Model
-GEMINI_MODEL=gemini-2.5-flash
-
-# Backend Express Port
-PORT=3001
-
-# Approved origins for CORS and postMessage
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,https://estudy.co.za
+# Groq API key (server-side only)
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=openai/gpt-oss-20b
+PORT=3000
 ```
 
-> ⚠️ **CRITICAL SECURITY REQUIREMENT:**
-> `GEMINI_API_KEY` is strictly server-side. It is NEVER shipped to client-side bundles or exposed to the browser.
+For Vercel, configure `GROQ_API_KEY` in the project's **Settings → Environment
+Variables** for each deployment environment, then redeploy. The local `.env`
+file is ignored by Git and is not uploaded. Keep the course DOCX files in
+`assets/knowledge base` tracked in Git; see
+[docs/INTEGRATION.md](./docs/INTEGRATION.md#deploying-on-vercel) for deployment
+checks.
 
 ---
 
@@ -91,23 +82,14 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,https://estudy.co.za
 npm install
 ```
 
-### 2. Start the Backend API Server
+### 2. Start the Application
 
-In terminal 1:
-```bash
-npm run dev:server
-```
-*Runs Express backend server on `http://localhost:3001` with tsx reloading.*
-
-### 3. Start the Frontend Application
-
-In terminal 2:
 ```bash
 npm run dev
 ```
-*Runs Vite dev server on `http://localhost:3000` with API proxying to port 3001.*
+*Starts the Express API and Vite frontend together. If the configured port is already in use, the server retries on the next port and prints the URL to use.*
 
-Open `http://localhost:3000` in your browser to view the interactive demo LMS and chatbot.
+Open the URL printed in the terminal (normally `http://localhost:3000`) to use the AI chatbot. Lesson context is supplied by the host LMS when embedded; otherwise, the chatbot starts without mock course or learner data.
 
 ---
 

@@ -4,8 +4,8 @@
  */
 
 export interface CrossKnowledgeContext {
-  courseId: string;
-  courseName: string;
+  courseId?: string;
+  courseName?: string;
   moduleId?: string;
   moduleName?: string;
   lessonId?: string;
@@ -35,19 +35,21 @@ export class CrossKnowledgeService {
    */
   static normalizeContext(rawContext: Partial<CrossKnowledgeContext>): CrossKnowledgeContext {
     return {
-      courseId: rawContext.courseId || 'course-default',
-      courseName: rawContext.courseName || 'eStudy South Africa Course',
-      moduleId: rawContext.moduleId || 'mod-default',
-      moduleName: rawContext.moduleName || 'Current Module',
-      lessonId: rawContext.lessonId || 'lesson-default',
-      lessonTitle: rawContext.lessonTitle || 'Current Lesson',
+      courseId: rawContext.courseId,
+      courseName: rawContext.courseName,
+      moduleId: rawContext.moduleId,
+      moduleName: rawContext.moduleName,
+      lessonId: rawContext.lessonId,
+      lessonTitle: rawContext.lessonTitle,
       lessonContent: typeof rawContext.lessonContent === 'string' 
         ? rawContext.lessonContent 
-        : JSON.stringify(rawContext.lessonContent || ''),
-      learnerId: rawContext.learnerId || 'learner-anon',
-      learnerName: rawContext.learnerName || 'Learner',
-      learnerRole: rawContext.learnerRole || 'Student',
-      organization: rawContext.organization || 'eStudy South Africa'
+        : rawContext.lessonContent
+          ? JSON.stringify(rawContext.lessonContent)
+          : undefined,
+      learnerId: rawContext.learnerId,
+      learnerName: rawContext.learnerName,
+      learnerRole: rawContext.learnerRole,
+      organization: rawContext.organization
     };
   }
 

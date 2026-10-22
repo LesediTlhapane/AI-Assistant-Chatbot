@@ -28,7 +28,7 @@ This guide details how **eStudy South Africa** and **CrossKnowledge LMS** admini
                                    │
                          Node.js / Express
                                    │
-                      Google Gemini 2.5 Flash
+                      Groq Chat Completions
 ```
 
 ---
@@ -118,6 +118,40 @@ iframeWindow.postMessage({
 }, 'https://your-ai-assistant-domain.com');
 ```
 
+## 📚 Course Knowledge Base
+
+The assistant uses the three course modules in `assets/knowledge base` as its
+authoritative source:
+
+- Module 1: Introduction to Artificial Intelligence
+- Module 2: AI Fundamentals — Key Concepts & Terminology
+- Module 3: Prompt Engineering
+
+The server extracts text from the `.docx` files and retrieves relevant sections
+for each question before sending them to Groq. The assistant is instructed to
+say when the supplied material does not support an answer. Include this folder
+and its documents in the deployment; the server loads them at startup. Restart
+the server after adding or replacing documents.
+When a learner asks for a summary of a specific module, the assistant receives
+all searchable sections from that module so it can provide a complete overview.
+
+The `/api/health` endpoint reports knowledge-base readiness, module count, and
+the number of searchable sections.
+
+### Deploying on Vercel
+
+The project includes a Vercel function at `/api/chat`. Add `GROQ_API_KEY` in
+the Vercel project's **Settings → Environment Variables** for each environment
+you deploy (Production, Preview, and/or Development), then redeploy. The local
+`.env` file is ignored by Git and is not uploaded to Vercel.
+
+Keep the three `.docx` files in `assets/knowledge base` tracked in Git and
+included in the deployment. `vercel.json` configures these files to be bundled
+with the API functions. After deployment, open `/api/health` on the Vercel
+domain: the response should show `groqConfigured: true` and
+`knowledgeBase.status: "ready"` with three modules. If either check fails,
+review the Vercel function logs and project environment variables.
+
 ---
 
 ## 🔒 Security & CORS Configuration
@@ -126,7 +160,7 @@ iframeWindow.postMessage({
    ```env
    ALLOWED_ORIGINS=https://estudy.crossknowledge.com,https://learning.estudy.co.za
    ```
-2. **No Secret Exposure**: The `GEMINI_API_KEY` remains strictly server-side and is never sent to the browser or passed through `postMessage`.
+2. **No Secret Exposure**: The `GROQ_API_KEY` remains strictly server-side and is never sent to the browser or passed through `postMessage`.
 3. **HTTPS Required**: Always host the chatbot backend on HTTPS in production to prevent mixed-content blocking in CrossKnowledge.
 
 ---
@@ -137,5 +171,6 @@ Before final production rollout across 1,800 enrolled students, ensure the follo
 
 - [ ] Production domain for hosting the chatbot application.
 - [ ] Confirmed list of CrossKnowledge LMS domain origins for `ALLOWED_ORIGINS`.
-- [ ] Google Gemini API Key configured in production environment variables (`GEMINI_API_KEY`).
+- [ ] Groq API Key configured in production environment variables (`GROQ_API_KEY`).
+- [ ] `assets/knowledge base` and its Module 1–3 documents included in the deployment.
 - [ ] CrossKnowledge learner token / SSO verification strategy if persistent learner history tracking is desired for Version 2.

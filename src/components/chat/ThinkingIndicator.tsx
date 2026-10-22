@@ -1,12 +1,13 @@
 import React from 'react';
-import { Bot, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { AssistantLogo } from '../assistant/AssistantLogo';
 
 export const ThinkingIndicator: React.FC = () => {
   return (
     <div id="ai-thinking-indicator" className="flex items-start gap-2.5 p-3.5 my-2 animate-in fade-in duration-200">
       {/* Bot Icon */}
-      <div className="w-7 h-7 rounded-xl bg-[#052B66] text-white flex items-center justify-center text-xs shrink-0 shadow-2xs">
-        <Bot className="w-4 h-4" />
+      <div className="w-7 h-7 rounded-xl bg-white flex items-center justify-center text-xs shrink-0 shadow-2xs overflow-hidden">
+        <AssistantLogo className="w-full h-full" />
       </div>
 
       <div className="bg-white border border-gray-200/90 rounded-2xl rounded-tl-xs px-4 py-3 shadow-2xs space-y-1.5 max-w-[85%]">

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Sparkles, Compass, BrainCircuit, Bot, ArrowRight } from 'lucide-react';
+import { Sparkles, Compass, BrainCircuit, ArrowRight } from 'lucide-react';
 import { AssistantContext, QuickActionType } from '../../types/assistant';
+import { AssistantLogo } from './AssistantLogo';
 
 interface WelcomeViewProps {
   context: AssistantContext;
@@ -11,8 +12,8 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
   context,
   onSelectAction
 }) => {
-  const learnerName = context.learnerName || 'John';
-  const lessonTitle = context.lessonTitle || 'Prompt Engineering for Business Teams';
+  const learnerName = context.learnerName;
+  const lessonTitle = context.lessonTitle;
 
   return (
     <div id="ai-assistant-welcome-view" className="p-4 sm:p-5 space-y-4 animate-in fade-in duration-300">
@@ -20,25 +21,29 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
       {/* Friendly Greeting Card */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/90 shadow-2xs space-y-3.5 text-left">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#052B66] to-[#0A4B9F] text-white flex items-center justify-center shadow-xs">
-            <Bot className="w-4 h-4 text-[#45CC42]" />
+          <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-xs overflow-hidden">
+            <AssistantLogo className="w-full h-full" />
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-[#101828]">
-              Hi {learnerName} 👋
+              Hi {learnerName || 'there'} 👋
             </h3>
             <p className="text-[11px] text-gray-500 font-medium">Your learning companion</p>
           </div>
         </div>
 
         {/* Current topic context */}
-        <div className="bg-[#052B66]/5 rounded-xl p-3 border border-[#052B66]/10">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 mb-1">Currently studying</p>
-          <p className="text-xs sm:text-sm font-bold text-[#052B66] leading-snug">{lessonTitle}</p>
-        </div>
+        {lessonTitle && (
+          <div className="bg-[#052B66]/5 rounded-xl p-3 border border-[#052B66]/10">
+            <p className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 mb-1">Currently studying</p>
+            <p className="text-xs sm:text-sm font-bold text-[#052B66] leading-snug">{lessonTitle}</p>
+          </div>
+        )}
 
         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-          Ask me anything about this topic — I can explain concepts, give examples, simplify ideas, or quiz you.
+          {lessonTitle
+            ? 'Ask me anything about this topic — I can explain concepts, give examples, simplify ideas, or quiz you.'
+            : 'Ask me anything — I can explain concepts, give examples, simplify ideas, or quiz you.'}
         </p>
 
         <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
@@ -56,9 +61,9 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           Suggested Actions
         </p>
         
-        {/* 1. Explain this lesson */}
+        {/* 1. Explain a concept */}
         <button
-          onClick={() => onSelectAction('explain', `Explain ${lessonTitle} in detail.`)}
+          onClick={() => onSelectAction('explain', lessonTitle ? `Explain ${lessonTitle} in detail.` : 'Explain a concept for me.')}
           className="w-full text-left p-3 rounded-xl bg-white border border-gray-200 hover:border-[#052B66] hover:bg-[#052B66]/5 transition-all flex items-center justify-between gap-3 group active:scale-[0.99] shadow-2xs cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -67,7 +72,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
             </div>
             <div className="min-w-0">
               <span className="text-xs font-bold text-[#101828] group-hover:text-[#052B66] transition-colors block">
-                Explain this lesson
+                {lessonTitle ? 'Explain this lesson' : 'Explain a concept'}
               </span>
               <p className="text-[11px] text-gray-500 truncate">
                 Get a clear, structured breakdown of core concepts

@@ -68,22 +68,6 @@ export interface AiAssistantPanelProps {
   onResetConversation?: () => void;
 }
 
-// Sensible default mock context for development/testing
-const DEFAULT_CONTEXT: AssistantContext = {
-  courseId: 'ck-ai-101',
-  courseTitle: 'AI Essentials for Business & Workplace',
-  moduleId: 'mod-02',
-  moduleOrder: 2,
-  moduleTitle: 'AI in the Workplace & Prompting',
-  lessonId: 'les-02-01',
-  lessonTitle: 'Prompt Engineering for Business Teams',
-  lessonDescription: 'Learn structured prompting frameworks (RTCF) to eliminate hallucinations and accelerate drafting.',
-  learnerId: 'usr-889',
-  learnerName: 'John',
-  courseProgress: 45,
-  moduleProgress: 60
-};
-
 export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
   context,
   initialMessages = [],
@@ -102,23 +86,21 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
 }) => {
   // Derive effective context if legacy props passed
   const activeContext: AssistantContext = context || {
-    courseId: 'ck-ai-101',
-    courseTitle: 'Creative Thinking & Workplace AI',
-    moduleId: module?.id || DEFAULT_CONTEXT.moduleId,
-    moduleOrder: module?.order || DEFAULT_CONTEXT.moduleOrder,
-    moduleTitle: module?.title || DEFAULT_CONTEXT.moduleTitle,
-    lessonId: lesson?.id || DEFAULT_CONTEXT.lessonId,
-    lessonTitle: lesson?.title || DEFAULT_CONTEXT.lessonTitle,
-    lessonDescription: lesson?.description || DEFAULT_CONTEXT.lessonDescription,
-    learnerId: learner?.id || DEFAULT_CONTEXT.learnerId,
-    learnerName: learner?.name || DEFAULT_CONTEXT.learnerName,
-    courseProgress: learner?.courseProgress || DEFAULT_CONTEXT.courseProgress,
-    moduleProgress: module?.progress || DEFAULT_CONTEXT.moduleProgress
+    moduleId: module?.id,
+    moduleOrder: module?.order,
+    moduleTitle: module?.title,
+    lessonId: lesson?.id,
+    lessonTitle: lesson?.title,
+    lessonDescription: lesson?.description,
+    learnerId: learner?.id,
+    learnerName: learner?.name,
+    courseProgress: learner?.courseProgress,
+    moduleProgress: module?.progress
   };
 
   // Internal state when not externally controlled
   const [internalMessages, setInternalMessages] = useState<ChatMessage[]>(initialMessages);
-  const [isThinking, setIsThinking] = useState(false);
+  const [isInternallyThinking, setIsInternallyThinking] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [responseStyle, setResponseStyle] = useState<'concise' | 'detailed'>('detailed');
@@ -126,6 +108,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
 
   const isControlled = externalMessages !== undefined && externalSendMessage !== undefined;
   const messages = isControlled ? externalMessages : internalMessages;
+  const isThinking = externalThinking ?? isInternallyThinking;
   const hasMessages = messages.length > 0;
 
   const handleSendMessage = async (query: string, actionType: QuickActionType = 'general') => {
@@ -148,7 +131,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
     };
 
     setInternalMessages((prev) => [...prev, userMsg]);
-    setIsThinking(true);
+    setIsInternallyThinking(true);
     setErrorMessage(null);
 
     try {
@@ -167,13 +150,14 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
       console.error('Error getting AI response:', err);
       setErrorMessage('Unable to connect to AI Assistant service. Please try again.');
     } finally {
-      setIsThinking(false);
+      setIsInternallyThinking(false);
     }
   };
 
   const handleResetConversation = () => {
     setInternalMessages([]);
     setErrorMessage(null);
+    onResetConversation?.();
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
@@ -218,7 +202,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
     >
       {/* 1. Header with Controls */}
       <AssistantHeader
-        onCollapse={onCollapse || (() => {})}
+        onCollapse={onCollapse}
         onReset={handleResetConversation}
         onOpenSettings={() => setIsSettingsOpen(true)}
         isVoiceEnabled={isVoiceEnabled}

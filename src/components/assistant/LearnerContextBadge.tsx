@@ -7,8 +7,11 @@ interface LearnerContextBadgeProps {
 }
 
 export const LearnerContextBadge: React.FC<LearnerContextBadgeProps> = ({ context }) => {
-  const moduleLabel = context.moduleTitle || (context.moduleOrder ? `Module ${context.moduleOrder}` : 'Module 2 — AI in the Workplace');
-  const lessonLabel = context.lessonTitle || 'Prompt Engineering for Business Teams';
+  const moduleLabel = context.moduleTitle || context.moduleName || (context.moduleOrder ? `Module ${context.moduleOrder}` : context.courseTitle || context.courseName);
+  const lessonLabel = context.lessonTitle;
+  const hasContext = Boolean(moduleLabel || lessonLabel);
+
+  if (!hasContext) return null;
 
   return (
     <div
@@ -19,13 +22,19 @@ export const LearnerContextBadge: React.FC<LearnerContextBadgeProps> = ({ contex
         <div className="w-2 h-2 rounded-full bg-[#45CC42] shrink-0 animate-pulse" />
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
-            <span>Currently learning</span>
-            <span>·</span>
-            <span className="truncate">{moduleLabel}</span>
+            <span>{lessonLabel ? 'Currently learning' : 'LMS context'}</span>
+            {moduleLabel && (
+              <>
+                <span>·</span>
+                <span className="truncate">{moduleLabel}</span>
+              </>
+            )}
           </div>
-          <p className="text-xs font-bold text-[#052B66] truncate leading-tight">
-            {lessonLabel}
-          </p>
+          {lessonLabel && (
+            <p className="text-xs font-bold text-[#052B66] truncate leading-tight">
+              {lessonLabel}
+            </p>
+          )}
         </div>
       </div>
 

@@ -16,14 +16,16 @@ export type AssistantMode = 'welcome' | 'conversation' | 'quiz' | 'challenge' | 
 
 export interface AssistantContext {
   courseId?: string;
+  courseName?: string;
   courseTitle?: string;
   moduleId?: string;
+  moduleName?: string;
   moduleOrder?: number | string;
   moduleTitle?: string;
   lessonId?: string;
   lessonTitle?: string;
   lessonDescription?: string;
-  lessonContent?: string;
+  lessonContent?: string | object;
   learnerId?: string;
   learnerName?: string;
   courseProgress?: number;

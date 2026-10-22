@@ -34,8 +34,9 @@ export class AiService {
   private static API_URL_ENDPOINTS = [
     '/api/chat',
     import.meta.env.VITE_API_URL || '',
-    'http://localhost:3000/api/chat',
-    'http://localhost:3001/api/chat'
+    ...(import.meta.env.DEV
+      ? ['http://localhost:3000/api/chat', 'http://localhost:3001/api/chat']
+      : [])
   ].filter(Boolean);
 
   /**
@@ -52,6 +53,7 @@ export class AiService {
       }))
     });
 
+    let lastError = 'No AI API endpoint is configured.';
     for (const endpoint of this.API_URL_ENDPOINTS) {
       try {
         const response = await fetch(endpoint, {
@@ -62,31 +64,25 @@ export class AiService {
           body: payload
         });
 
-        if (response.ok) {
-          const data: ChatApiQuizResponse = await response.json();
-          if (data.success && data.message) {
-            if (data.quizData && !data.message.quizData) {
-              data.message.quizData = {
-                questions: data.quizData.questions,
-                currentQuestionIndex: 0,
-                userAnswers: {},
-                isSubmitted: false
-              };
-            }
-            return data.message;
+        const data: ChatApiQuizResponse = await response.json();
+        if (response.ok && data.success && data.message) {
+          if (data.quizData && !data.message.quizData) {
+            data.message.quizData = {
+              questions: data.quizData.questions,
+              currentQuestionIndex: 0,
+              userAnswers: {},
+              isSubmitted: false
+            };
           }
+          return data.message;
         }
-      } catch (err: any) {
-        // Try next fallback endpoint
+        lastError = data.error || `AI service request failed with status ${response.status}.`;
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : String(err);
       }
     }
 
-    // If server endpoints cannot be reached (e.g. offline preview), provide intelligent local response
-    return AiSimulatorService.generateFallbackMessage(
-      request.message,
-      request.actionType || 'general',
-      request.context
-    );
+    throw new Error(`Unable to get a knowledge-based AI response: ${lastError}`);
   }
 
   /**
@@ -95,9 +91,7 @@ export class AiService {
   static buildContextFromLesson(lesson?: Lesson, module?: Module, learnerId?: string): CrossKnowledgeContext {
     if (!lesson) {
       return {
-        courseId: 'course-general',
-        courseName: 'eStudy Vocational Learning',
-        learnerId: learnerId || 'learner-anon'
+        learnerId
       };
     }
 
@@ -106,14 +100,12 @@ export class AiService {
       : lesson.description;
 
     return {
-      courseId: 'course-estudy-ai',
-      courseName: 'eStudy AI Learning Program',
-      moduleId: module?.id || 'mod-active',
-      moduleName: module?.title || 'Active Module',
+      moduleId: module?.id,
+      moduleName: module?.title,
       lessonId: lesson.id,
       lessonTitle: lesson.title,
       lessonContent: lessonText,
-      learnerId: learnerId || 'learner-anon'
+      learnerId
     };
   }
 }
