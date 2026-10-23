@@ -1,4 +1,4 @@
-import { X, Volume2, Sparkles, Trash2, CheckCircle2, Sliders, Shield } from 'lucide-react';
+import { X, Trash2, Sliders, Shield } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -87,22 +87,6 @@ export const SettingsModal = ({
                 }`}
               />
             </button>
-          </div>
-
-          {/* AI Engine Status */}
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-1">
-            <div className="flex items-center justify-between font-bold">
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#45CC42]" />
-                <span>AI Engine: Groq</span>
-              </div>
-              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
-                LPU Acceleration
-              </span>
-            </div>
-            <p className="text-[11px] text-emerald-800 leading-relaxed">
-              Powered by Groq high-speed inference for instant explanations, quizzes, and workplace challenge coaching.
-            </p>
           </div>
 
           {/* Context Sync Info */}
