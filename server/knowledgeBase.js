@@ -156,14 +156,20 @@ export async function retrieveKnowledge(query, context = {}) {
   const isSummaryRequest = /\b(?:summary|summari[sz](?:e|ing|ed)?|overview|(?:key|main)\s+points|takeaways)\b/i.test(query);
   const queryModuleMatch = query.match(/\bmodule[\s_-]*([1-3])\b/i);
   const contextModuleMatch = contextText.match(/\bmodule[\s_-]*([1-3])\b/i);
+  const queryModuleNumber = queryModuleMatch ? Number(queryModuleMatch[1]) : null;
+  const queryModule = MODULES.find((module) => module.number === queryModuleNumber);
+  const moduleTitleTerms = new Set(queryModule ? tokenize(queryModule.title) : []);
+  const isModuleOnlyRequest = queryModuleMatch !== null
+    && tokenize(query).every((term) => moduleTitleTerms.has(term));
   const summaryModuleMatch = queryModuleMatch || (
     /\b(?:this|the)\s+module\b/i.test(query) && !/\blesson\b/i.test(query)
       ? contextModuleMatch
       : null
   );
 
-  if (isSummaryRequest && summaryModuleMatch) {
-    const moduleNumber = Number(summaryModuleMatch[1]);
+  if ((isSummaryRequest && summaryModuleMatch) || isModuleOnlyRequest) {
+    const selectedModuleMatch = summaryModuleMatch || queryModuleMatch;
+    const moduleNumber = Number(selectedModuleMatch[1]);
     const moduleChunks = knowledgeBase.chunks.filter((chunk) => chunk.moduleNumber === moduleNumber);
     if (moduleChunks.length > 0) {
       return {
