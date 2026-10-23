@@ -1,28 +1,24 @@
 import { ESTUDY_SYSTEM_PROMPT } from './systemPrompt.js';
 
-const MAX_BATCH_CHARACTERS = 9000;
+const MAX_SUMMARY_EXCERPTS = 10;
 
-function createBatches(snippets) {
-  const batches = [];
-  let batch = [];
-  let batchLength = 0;
+function selectRepresentativeSnippets(snippets) {
+  if (snippets.length <= MAX_SUMMARY_EXCERPTS) return snippets;
 
-  for (const snippet of snippets) {
-    const formatted = `[Source: ${snippet.source}]\n${snippet.content}`;
-    if (batch.length > 0 && batchLength + formatted.length > MAX_BATCH_CHARACTERS) {
-      batches.push(batch);
-      batch = [];
-      batchLength = 0;
-    }
-    batch.push(formatted);
-    batchLength += formatted.length;
-  }
-
-  if (batch.length > 0) batches.push(batch);
-  return batches;
+  return Array.from({ length: MAX_SUMMARY_EXCERPTS }, (_, index) => {
+    const snippetIndex = Math.round(
+      index * (snippets.length - 1) / (MAX_SUMMARY_EXCERPTS - 1)
+    );
+    return snippets[snippetIndex];
+  });
 }
 
-async function completeWithFallback(groq, models, prompt, maxTokens) {
+export async function summarizeModule(snippets, groq, models) {
+  const selectedSnippets = selectRepresentativeSnippets(snippets);
+  const source = snippets[0]?.source || 'the selected module';
+  const prompt = `Create a brief overview of "${source}" in exactly 5 concise bullet points. The source excerpts are sampled across the module; use only facts they support, cover the main themes represented, and do not invent details or claim unsupported coverage. Keep the answer under 150 words and finish every bullet.\n\n${selectedSnippets.map(({ source: snippetSource, content }, index) =>
+    `[Excerpt ${index + 1} from ${snippetSource}]\n${content}`
+  ).join('\n\n')}`;
   let lastError;
 
   for (const model of models) {
@@ -34,8 +30,10 @@ async function completeWithFallback(groq, models, prompt, maxTokens) {
           { role: 'user', content: prompt }
         ],
         temperature: 0.2,
-        max_tokens: maxTokens,
-        reasoning_effort: 'low'
+        max_tokens: 1000,
+        ...(model.startsWith('openai/gpt-oss-') || model.startsWith('qwen/qwen3.')
+          ? { reasoning_effort: 'low' }
+          : {})
       }, { timeout: 45000 });
       const content = response.choices[0]?.message?.content;
       if (content?.trim()) return content.trim();
@@ -46,26 +44,4 @@ async function completeWithFallback(groq, models, prompt, maxTokens) {
   }
 
   throw lastError || new Error('No model was available to summarize the module.');
-}
-
-export async function summarizeModule(snippets, groq, models) {
-  const batches = createBatches(snippets);
-  const partialSummaries = [];
-
-  for (const [index, batch] of batches.entries()) {
-    partialSummaries.push(await completeWithFallback(
-      groq,
-      models,
-      `Summarize the important concepts, definitions, and takeaways in this section of the course module. Use only the source text below, preserve the terminology, and return 4 to 6 concise bullet points.\n\n${batch.join('\n\n')}`,
-      600
-    ));
-    console.log(`[Knowledge Base] Summarized module section ${index + 1} of ${batches.length}.`);
-  }
-
-  return completeWithFallback(
-    groq,
-    models,
-    `Combine the section notes below into one brief, coherent summary of "${snippets[0]?.source}". Use that exact title as the heading. Give exactly 5 concise bullets covering the module's most important concepts and takeaways. Do not add facts that are not in the notes. Keep the entire answer under 150 words and finish every bullet.\n\n${partialSummaries.map((summary, index) => `[Section ${index + 1}]\n${summary}`).join('\n\n')}`,
-    1200
-  );
 }

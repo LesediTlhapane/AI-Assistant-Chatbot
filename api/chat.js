@@ -72,9 +72,9 @@ export default async function handler(req, res) {
     };
 
     const historyMessages = Array.isArray(conversationHistory)
-      ? conversationHistory.slice(-6).map((item) => ({
+      ? conversationHistory.slice(-4).map((item) => ({
           role: item.sender === 'user' || item.role === 'learner' ? 'user' : 'assistant',
-          content: String(item.content || '').slice(0, 800)
+          content: String(item.content || '').slice(0, 500)
         }))
       : [];
 
@@ -116,7 +116,10 @@ ${message.trim()}
               { role: 'user', content: prompt }
             ],
             temperature: 0.2,
-            max_tokens: 2048,
+            max_tokens: actionType === 'quiz' ? 2048 : 1000,
+            ...(model.startsWith('openai/gpt-oss-') || model.startsWith('qwen/qwen3.')
+              ? { reasoning_effort: 'low' }
+              : {}),
           }, { timeout: 45000 });
 
           answer = result.choices[0]?.message?.content || '';

@@ -158,13 +158,13 @@ app.post('/api/chat', async (req, res) => {
     : 'No relevant excerpts were found in the Module 1–3 knowledge base.';
 
   // 2. Build History (Limit to last 6 messages)
-  const recentHistory = Array.isArray(conversationHistory) ? conversationHistory.slice(-6) : [];
+  const recentHistory = Array.isArray(conversationHistory) ? conversationHistory.slice(-4) : [];
   const historyMessages = [];
   recentHistory.forEach((msg) => {
     if (msg.sender && msg.content) {
       historyMessages.push({
         role: msg.sender === 'user' || msg.role === 'learner' ? 'user' : 'assistant',
-        content: String(msg.content).slice(0, 800)
+        content: String(msg.content).slice(0, 500)
       });
     }
   });
@@ -228,7 +228,10 @@ app.post('/api/chat', async (req, res) => {
             }
           ],
           temperature: 0.2,
-          max_tokens: 2048
+          max_tokens: actionType === 'quiz' ? 2048 : 1000,
+          ...(targetModel.startsWith('openai/gpt-oss-') || targetModel.startsWith('qwen/qwen3.')
+            ? { reasoning_effort: 'low' }
+            : {})
         }, { timeout: 45000 });
 
         if (response && response.choices && response.choices[0]?.message?.content) {

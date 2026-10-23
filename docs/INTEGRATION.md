@@ -133,7 +133,8 @@ say when the supplied material does not support an answer. Include this folder
 and its documents in the deployment; the server loads them at startup. Restart
 the server after adding or replacing documents.
 When a learner asks for a summary of a specific module, the assistant receives
-all searchable sections from that module so it can provide a complete overview.
+representative sections sampled across that module and generates the overview
+in one model request to keep response times down.
 
 The `/api/health` endpoint reports knowledge-base readiness, module count, and
 the number of searchable sections.
