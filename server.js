@@ -150,7 +150,7 @@ app.post('/api/chat', async (req, res) => {
   const knowledge = await retrieveKnowledge(sanitizedMessage, {
     ...context,
     lessonDescription: undefined
-  });
+  }, conversationHistory);
   const knowledgePrompt = knowledge.snippets.length > 0
     ? knowledge.snippets.map((snippet) =>
       `[Source: ${snippet.source}]\n${snippet.content}`

@@ -115,7 +115,8 @@ app.post('/api/chat', async (req, res) => {
   contextPrompt += '===============================\n\n';
   const knowledge = await retrieveKnowledge(
     sanitizedMessage,
-    { ...context, lessonDescription: undefined }
+    { ...context, lessonDescription: undefined },
+    conversationHistory
   );
   const knowledgePrompt = knowledge.snippets.length > 0
     ? knowledge.snippets.map((snippet: { source: string; content: string }, index: number) =>

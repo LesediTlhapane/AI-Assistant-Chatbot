@@ -135,6 +135,9 @@ the server after adding or replacing documents.
 When a learner asks for a summary of a specific module, the assistant receives
 representative sections sampled across that module and generates the overview
 in one model request to keep response times down.
+For short follow-up requests such as “Give me an example” or “Simplify this,”
+recent learner messages may guide module and topic retrieval; prior assistant
+responses are not treated as knowledge sources.
 
 The `/api/health` endpoint reports knowledge-base readiness, module count, and
 the number of searchable sections.

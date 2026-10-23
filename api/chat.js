@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     const knowledge = await retrieveKnowledge(message.trim(), {
       ...context,
       lessonDescription: undefined,
-    });
+    }, conversationHistory);
     const knowledgePrompt = knowledge.snippets.length > 0
       ? knowledge.snippets.map(({ source, content }) => `[Source: ${source}]\n${content}`).join('\n\n')
       : 'No relevant excerpts were found in the Module 1–3 knowledge base.';
