@@ -104,7 +104,14 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [responseStyle, setResponseStyle] = useState<'concise' | 'detailed'>('detailed');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    localStorage.getItem('estudy-assistant-theme') === 'dark' ? 'dark' : 'light'
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    localStorage.setItem('estudy-assistant-theme', theme);
+  }, [theme]);
 
   const isControlled = externalMessages !== undefined && externalSendMessage !== undefined;
   const messages = isControlled ? externalMessages : internalMessages;
@@ -196,6 +203,8 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
     <aside
       id="ai-assistant-side-panel"
       className={`h-full flex flex-col bg-white border-l border-gray-200 overflow-hidden text-left relative ${
+        theme === 'dark' ? 'ai-assistant-dark' : ''
+      } ${
         isMobileDrawer ? 'w-full' : 'w-full'
       } ${className}`}
       aria-label="eStudy AI Learning Assistant Panel"
@@ -268,6 +277,8 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
         onClearHistory={handleResetConversation}
         responseStyle={responseStyle}
         onChangeResponseStyle={setResponseStyle}
+        theme={theme}
+        onChangeTheme={setTheme}
         isVoiceEnabled={isVoiceEnabled}
         onToggleVoice={() => setIsVoiceEnabled(!isVoiceEnabled)}
       />

@@ -1,4 +1,4 @@
-import { X, Trash2, Sliders, Shield } from 'lucide-react';
+import { X, Trash2, Sliders, Shield, Sun, Moon } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -6,6 +6,8 @@ interface SettingsModalProps {
   onClearHistory: () => void;
   responseStyle: 'concise' | 'detailed';
   onChangeResponseStyle: (style: 'concise' | 'detailed') => void;
+  theme: 'light' | 'dark';
+  onChangeTheme: (theme: 'light' | 'dark') => void;
   isVoiceEnabled: boolean;
   onToggleVoice: () => void;
 }
@@ -16,6 +18,8 @@ export const SettingsModal = ({
   onClearHistory,
   responseStyle,
   onChangeResponseStyle,
+  theme,
+  onChangeTheme,
   isVoiceEnabled,
   onToggleVoice
 }: SettingsModalProps) => {
@@ -41,6 +45,37 @@ export const SettingsModal = ({
 
         {/* Options */}
         <div className="space-y-4 text-xs">
+
+          {/* Appearance */}
+          <div className="space-y-2">
+            <label className="font-bold text-gray-700 block">Appearance:</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => onChangeTheme('light')}
+                aria-pressed={theme === 'light'}
+                className={`p-2.5 rounded-xl border text-center font-semibold transition-all flex items-center justify-center gap-2 ${
+                  theme === 'light'
+                    ? 'border-[#052B66] bg-[#052B66]/5 text-[#052B66]'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <Sun className="w-4 h-4" />
+                Light
+              </button>
+              <button
+                onClick={() => onChangeTheme('dark')}
+                aria-pressed={theme === 'dark'}
+                className={`p-2.5 rounded-xl border text-center font-semibold transition-all flex items-center justify-center gap-2 ${
+                  theme === 'dark'
+                    ? 'border-[#052B66] bg-[#052B66]/5 text-[#052B66]'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <Moon className="w-4 h-4" />
+                Dark
+              </button>
+            </div>
+          </div>
           
           {/* Response Style */}
           <div className="space-y-2">
