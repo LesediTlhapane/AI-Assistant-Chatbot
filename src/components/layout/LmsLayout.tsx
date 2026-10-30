@@ -6,6 +6,7 @@ import {
   Module, 
   Lesson 
 } from '../../types';
+import { QuickActionType, ResponseStyle } from '../../types/assistant';
 import { LmsHeader } from './LmsHeader';
 import { CourseSidebar } from '../course/CourseSidebar';
 import { CourseContentView } from '../course/CourseContentView';
@@ -21,7 +22,7 @@ interface LmsLayoutProps {
   messages: ChatMessage[];
   isThinking: boolean;
   onSelectLesson: (moduleId: string, lessonId: string) => void;
-  onSendMessage: (query: string, actionType?: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge' | 'general') => void;
+  onSendMessage: (query: string, actionType?: QuickActionType, responseStyle?: ResponseStyle) => void;
   onResetConversation: () => void;
   onNextLesson: () => void;
   onPrevLesson: () => void;

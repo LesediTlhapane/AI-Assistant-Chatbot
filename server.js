@@ -6,6 +6,7 @@ import Groq from 'groq-sdk';
 import { ESTUDY_SYSTEM_PROMPT } from './server/systemPrompt.js';
 import { getKnowledgeBaseStatus, retrieveKnowledge } from './server/knowledgeBase.js';
 import { summarizeModule } from './server/moduleSummary.js';
+import { getResponseStyleInstruction, normalizeResponseStyle } from './server/responseStyle.js';
 
 // Load environment variables
 dotenv.config();
@@ -114,7 +115,14 @@ app.post('/api/chat', async (req, res) => {
     });
   }
 
-  const { message, actionType = 'general', context = {}, conversationHistory = [] } = req.body;
+  const {
+    message,
+    actionType = 'general',
+    responseStyle: requestedResponseStyle,
+    context = {},
+    conversationHistory = []
+  } = req.body;
+  const responseStyle = normalizeResponseStyle(requestedResponseStyle);
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({
@@ -206,7 +214,7 @@ app.post('/api/chat', async (req, res) => {
 
   if (knowledge.isModuleSummary) {
     try {
-      replyText = await summarizeModule(knowledge.snippets, groq, MODEL_FALLBACK_CHAIN);
+      replyText = await summarizeModule(knowledge.snippets, groq, MODEL_FALLBACK_CHAIN, responseStyle);
     } catch (err) {
       lastError = err;
     }
@@ -221,6 +229,10 @@ app.post('/api/chat', async (req, res) => {
               role: 'system',
               content: ESTUDY_SYSTEM_PROMPT
             },
+            {
+              role: 'system',
+              content: getResponseStyleInstruction(responseStyle, actionType)
+            },
             ...historyMessages,
             {
               role: 'user',
@@ -228,7 +240,7 @@ app.post('/api/chat', async (req, res) => {
             }
           ],
           temperature: 0.2,
-          max_tokens: actionType === 'quiz' ? 2048 : 1000,
+          max_tokens: actionType === 'quiz' ? 2048 : responseStyle === 'concise' ? 300 : 1600,
           ...(targetModel.startsWith('openai/gpt-oss-') || targetModel.startsWith('qwen/qwen3.')
             ? { reasoning_effort: 'low' }
             : {})

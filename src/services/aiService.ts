@@ -6,7 +6,7 @@ import {
   ChallengeScenario, 
   ChallengeEvaluation 
 } from '../types';
-import { AssistantContext, QuickActionType } from '../types/assistant';
+import { AssistantContext, QuickActionType, ResponseStyle } from '../types/assistant';
 import { CrossKnowledgeContext } from './crossKnowledgeService';
 import { AiSimulatorService } from './aiSimulator';
 
@@ -15,6 +15,7 @@ export interface ChatApiRequest {
   actionType?: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge' | 'general';
   context?: CrossKnowledgeContext | AssistantContext;
   conversationHistory?: ChatMessage[];
+  responseStyle?: ResponseStyle;
 }
 
 export interface ChatApiResponse {
@@ -47,6 +48,7 @@ export class AiService {
       message: request.message,
       actionType: request.actionType || 'general',
       context: request.context,
+      responseStyle: request.responseStyle || 'detailed',
       conversationHistory: (request.conversationHistory || []).map((m) => ({
         sender: m.sender,
         content: m.content
@@ -118,13 +120,15 @@ export const aiService = {
     query: string,
     context: AssistantContext,
     actionType: QuickActionType = 'general',
-    history: ChatMessage[] = []
+    history: ChatMessage[] = [],
+    responseStyle: ResponseStyle = 'detailed'
   ): Promise<ChatMessage> {
     return AiService.sendMessage({
       message: query,
       actionType,
       context,
-      conversationHistory: history
+      conversationHistory: history,
+      responseStyle
     });
   },
 

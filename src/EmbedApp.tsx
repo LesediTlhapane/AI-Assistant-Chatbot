@@ -3,6 +3,7 @@ import { ChatMessage } from './types';
 import { AiAssistantPanel } from './components/assistant/AiAssistantPanel';
 import { AiService } from './services/aiService';
 import { CrossKnowledgeContext, CrossKnowledgeService } from './services/crossKnowledgeService';
+import { QuickActionType, ResponseStyle } from './types/assistant';
 
 export const EmbedApp: React.FC = () => {
   const [context, setContext] = useState<CrossKnowledgeContext>({});
@@ -49,7 +50,8 @@ export const EmbedApp: React.FC = () => {
 
   const handleSendMessage = async (
     query: string,
-    actionType: 'explain' | 'simplify' | 'example' | 'summarise' | 'quiz' | 'challenge' | 'general' = 'general'
+    actionType: QuickActionType = 'general',
+    responseStyle: ResponseStyle = 'detailed'
   ) => {
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
@@ -65,6 +67,7 @@ export const EmbedApp: React.FC = () => {
       const responseMsg = await AiService.sendMessage({
         message: query,
         actionType,
+        responseStyle,
         context,
         conversationHistory: messages
       });

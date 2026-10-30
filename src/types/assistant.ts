@@ -14,6 +14,8 @@ export type QuickActionType =
 
 export type AssistantMode = 'welcome' | 'conversation' | 'quiz' | 'challenge' | 'error';
 
+export type ResponseStyle = 'concise' | 'detailed';
+
 export interface AssistantContext {
   courseId?: string;
   courseName?: string;

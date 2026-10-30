@@ -83,6 +83,7 @@ export const SettingsModal = ({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => onChangeResponseStyle('concise')}
+                aria-pressed={responseStyle === 'concise'}
                 className={`p-2.5 rounded-xl border text-center font-semibold transition-all ${
                   responseStyle === 'concise'
                     ? 'border-[#052B66] bg-[#052B66]/5 text-[#052B66]'
@@ -93,6 +94,7 @@ export const SettingsModal = ({
               </button>
               <button
                 onClick={() => onChangeResponseStyle('detailed')}
+                aria-pressed={responseStyle === 'detailed'}
                 className={`p-2.5 rounded-xl border text-center font-semibold transition-all ${
                   responseStyle === 'detailed'
                     ? 'border-[#052B66] bg-[#052B66]/5 text-[#052B66]'

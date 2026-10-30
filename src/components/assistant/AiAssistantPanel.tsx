@@ -3,7 +3,8 @@ import { AlertCircle, RotateCcw } from 'lucide-react';
 import { 
   AssistantContext, 
   ChatMessage, 
-  QuickActionType 
+  QuickActionType,
+  ResponseStyle
 } from '../../types/assistant';
 import { aiService } from '../../services/aiService';
 import { AssistantHeader } from './AssistantHeader';
@@ -38,7 +39,7 @@ export interface AiAssistantPanelProps {
   /**
    * Controlled message handler (optional)
    */
-  onSendMessage?: (query: string, actionType?: QuickActionType) => void;
+  onSendMessage?: (query: string, actionType?: QuickActionType, responseStyle?: ResponseStyle) => void;
 
   /**
    * Whether the panel is being rendered in full screen / mobile drawer
@@ -103,7 +104,9 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
   const [isInternallyThinking, setIsInternallyThinking] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [responseStyle, setResponseStyle] = useState<'concise' | 'detailed'>('detailed');
+  const [responseStyle, setResponseStyle] = useState<ResponseStyle>(() =>
+    localStorage.getItem('estudy-assistant-response-style') === 'concise' ? 'concise' : 'detailed'
+  );
   const [theme, setTheme] = useState<'light' | 'dark'>(() =>
     localStorage.getItem('estudy-assistant-theme') === 'dark' ? 'dark' : 'light'
   );
@@ -113,6 +116,10 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
     localStorage.setItem('estudy-assistant-theme', theme);
   }, [theme]);
 
+  React.useEffect(() => {
+    localStorage.setItem('estudy-assistant-response-style', responseStyle);
+  }, [responseStyle]);
+
   const isControlled = externalMessages !== undefined && externalSendMessage !== undefined;
   const messages = isControlled ? externalMessages : internalMessages;
   const isThinking = externalThinking ?? isInternallyThinking;
@@ -120,7 +127,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
 
   const handleSendMessage = async (query: string, actionType: QuickActionType = 'general') => {
     if (isControlled && externalSendMessage) {
-      externalSendMessage(query, actionType);
+      externalSendMessage(query, actionType, responseStyle);
       return;
     }
 
@@ -142,7 +149,13 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
     setErrorMessage(null);
 
     try {
-      const assistantMsg = await aiService.sendMessage(query, activeContext, actionType, [...internalMessages, userMsg]);
+      const assistantMsg = await aiService.sendMessage(
+        query,
+        activeContext,
+        actionType,
+        [...internalMessages, userMsg],
+        responseStyle
+      );
       setInternalMessages((prev) => [...prev, assistantMsg]);
 
       // Voice read-aloud if enabled

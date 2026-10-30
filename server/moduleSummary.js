@@ -13,10 +13,13 @@ function selectRepresentativeSnippets(snippets) {
   });
 }
 
-export async function summarizeModule(snippets, groq, models) {
+export async function summarizeModule(snippets, groq, models, responseStyle = 'detailed') {
   const selectedSnippets = selectRepresentativeSnippets(snippets);
   const source = snippets[0]?.source || 'the selected module';
-  const prompt = `Create a brief overview of "${source}" in exactly 5 concise bullet points. The source excerpts are sampled across the module; use only facts they support, cover the main themes represented, and do not invent details or claim unsupported coverage. Keep the answer under 150 words and finish every bullet.\n\n${selectedSnippets.map(({ source: snippetSource, content }, index) =>
+  const lengthInstruction = responseStyle === 'concise'
+    ? 'Use exactly 5 concise bullet points and keep the answer under 150 words.'
+    : 'Use 5 detailed bullet points, explaining the main concepts and their significance; aim for 250–400 words.';
+  const prompt = `Create an overview of "${source}". The source excerpts are sampled across the module; use only facts they support, cover the main themes represented, and do not invent details or claim unsupported coverage. ${lengthInstruction} Finish every bullet.\n\n${selectedSnippets.map(({ source: snippetSource, content }, index) =>
     `[Excerpt ${index + 1} from ${snippetSource}]\n${content}`
   ).join('\n\n')}`;
   let lastError;

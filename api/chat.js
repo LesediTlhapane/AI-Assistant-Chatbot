@@ -2,6 +2,7 @@ import Groq from 'groq-sdk';
 import { ESTUDY_SYSTEM_PROMPT } from '../server/systemPrompt.js';
 import { retrieveKnowledge } from '../server/knowledgeBase.js';
 import { summarizeModule } from '../server/moduleSummary.js';
+import { getResponseStyleInstruction, normalizeResponseStyle } from '../server/responseStyle.js';
 
 const PRIMARY_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 const MODELS = Array.from(new Set([
@@ -26,6 +27,7 @@ export default async function handler(req, res) {
   const {
     message,
     actionType = 'general',
+    responseStyle: requestedResponseStyle,
     context = {},
     conversationHistory = [],
   } = req.body || {};
@@ -46,6 +48,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    const responseStyle = normalizeResponseStyle(requestedResponseStyle);
     const safeContext = {
       courseName: context.courseName || context.courseTitle,
       moduleName: context.moduleName || context.moduleTitle,
@@ -101,7 +104,7 @@ ${message.trim()}
 
     if (knowledge.isModuleSummary) {
       try {
-        answer = await summarizeModule(knowledge.snippets, groq, MODELS);
+        answer = await summarizeModule(knowledge.snippets, groq, MODELS, responseStyle);
       } catch (error) {
         lastError = error;
       }
@@ -112,11 +115,12 @@ ${message.trim()}
             model,
             messages: [
               { role: 'system', content: ESTUDY_SYSTEM_PROMPT },
+              { role: 'system', content: getResponseStyleInstruction(responseStyle, actionType) },
               ...historyMessages,
               { role: 'user', content: prompt }
             ],
             temperature: 0.2,
-            max_tokens: actionType === 'quiz' ? 2048 : 1000,
+            max_tokens: actionType === 'quiz' ? 2048 : responseStyle === 'concise' ? 300 : 1600,
             ...(model.startsWith('openai/gpt-oss-') || model.startsWith('qwen/qwen3.')
               ? { reasoning_effort: 'low' }
               : {}),
