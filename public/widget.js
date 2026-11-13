@@ -34,31 +34,29 @@
   const button = document.createElement('button');
   button.id = 'estudy-ai-trigger-btn';
   button.ariaLabel = 'Ask AI Assistant';
+  button.title = 'Ask AI Assistant';
   button.style.cssText = `
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
     background: #052B66;
     color: #ffffff;
     border: 2px solid #45CC42;
-    padding: 12px 18px;
-    border-radius: 9999px;
-    font-size: 14px;
-    font-weight: 700;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 10px 25px -5px rgba(5, 43, 102, 0.4);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   `;
   button.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 8V4H8"></path>
-      <rect width="16" height="12" x="4" y="8" rx="2"></rect>
-      <path d="M2 14h2"></path>
-      <path d="M20 14h2"></path>
-      <path d="M15 13v2"></path>
-      <path d="M9 13v2"></path>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"></path>
+      <path d="M8 12h.01"></path>
+      <path d="M12 12h.01"></path>
+      <path d="M16 12h.01"></path>
     </svg>
-    <span>Ask AI</span>
   `;
 
   button.onmouseover = () => { button.style.transform = 'scale(1.04)'; };

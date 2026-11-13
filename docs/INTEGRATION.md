@@ -12,7 +12,7 @@ This guide details how **eStudy South Africa** and **CrossKnowledge LMS** admini
                                    ▼
                        eStudy AI Widget (widget.js)
                                    │
-                       Floating "Ask AI" Button
+                       Floating Chat Bubble Button
                                    │
                          Right-side Slide Drawer
                                    │
@@ -71,7 +71,7 @@ Define the global context on the CrossKnowledge page before or after loading the
 </script>
 ```
 
-When the learner clicks **Ask AI**, the widget automatically opens a right-side drawer and transmits the current context to the AI assistant using secure `postMessage` communication.
+When the learner clicks the chat bubble, the widget automatically opens a right-side drawer and transmits the current context to the AI assistant using `postMessage` communication.
 
 ---
 
