@@ -83,11 +83,10 @@ If you prefer to embed the AI assistant directly inside a CrossKnowledge page co
 
 ```html
 <iframe
-  id="estudy-ai-iframe"
-  src="https://your-ai-assistant-domain.com/embed"
-  style="width: 100%; height: 650px; border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
-  allow="microphone"
-  title="eStudy AI Learning Assistant">
+  src="https://ai-assistant-chatbot-flame.vercel.app/"
+  title="eStudy AI Learning Assistant"
+  style="width: 100%; height: 650px; border: 0; border-radius: 12px;"
+  allow="microphone">
 </iframe>
 ```
 
