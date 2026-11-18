@@ -7,8 +7,7 @@ const KNOWLEDGE_DIRECTORY = path.resolve(
   process.env.VERCEL
     ? process.cwd()
     : path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'),
-  'assets',
-  'knowledge base'
+  'assets'
 );
 const MAX_CHUNK_LENGTH = 1600;
 const MAX_RESULTS = 6;
@@ -29,10 +28,19 @@ const FOLLOW_UP_TERMS = new Set([
 ]);
 
 const MODULES = [
-  { number: 1, pattern: /module[\s_-]*1|introduction[\s_-]*to[\s_-]*ai/i, title: 'Module 1: Introduction to Artificial Intelligence' },
-  { number: 2, pattern: /module[\s_-]*2|key[\s_-]*concepts|terminolog/i, title: 'Module 2: AI Fundamentals — Key Concepts & Terminology' },
-  { number: 3, pattern: /module[\s_-]*3|prompt[\s_-]*engineering/i, title: 'Module 3: Prompt Engineering' }
+  { number: 1, title: "Module 1: AI 101 — A Beginner's Guide" },
+  { number: 2, title: 'Module 2: Analytical Thinking and Innovation' },
+  { number: 3, title: 'Module 3: Creative Thinking and AI' },
+  { number: 4, title: 'Module 4: Critical Thinking in the Tech Age' },
+  { number: 5, title: 'Module 5: Key Concepts and Terminologies' },
+  { number: 6, title: 'Module 6: Complex Problem Solving' },
+  { number: 7, title: 'Module 7: Curiosity and Lifelong Learning' },
+  { number: 8, title: 'Module 8: Leadership and Social Influence' },
+  { number: 9, title: 'Module 9: Prompt Engineering' },
+  { number: 10, title: 'Module 10: Reasoning and Ideation' },
+  { number: 11, title: 'Module 11: Resilience, Flexibility and Agility' }
 ];
+const MODULE_REFERENCE_PATTERN = /\bmodule[\s_-]*(1[01]|[1-9])\b/i;
 
 let knowledgeBasePromise;
 
@@ -114,7 +122,8 @@ async function loadKnowledgeBase() {
 
   const documents = [];
   for (const filename of filenames) {
-    const module = MODULES.find((entry) => entry.pattern.test(filename));
+    const moduleNumber = filename.match(MODULE_REFERENCE_PATTERN)?.[1];
+    const module = MODULES.find((entry) => entry.number === Number(moduleNumber));
     if (!module) {
       console.warn(`[Knowledge Base] Skipping unrecognized module document: ${filename}`);
       continue;
@@ -131,9 +140,10 @@ async function loadKnowledgeBase() {
   }
 
   if (documents.length === 0) {
-    throw new Error(`No recognized Module 1, 2, or 3 DOCX documents found in "${KNOWLEDGE_DIRECTORY}".`);
+    throw new Error(`No recognized Module 1–11 DOCX documents found in "${KNOWLEDGE_DIRECTORY}".`);
   }
 
+  documents.sort((left, right) => left.module.number - right.module.number);
   const chunks = documents.flatMap((document) => document.chunks);
   const termDocumentCounts = new Map();
   for (const chunk of chunks) {
@@ -164,10 +174,10 @@ export async function retrieveKnowledge(query, context = {}, conversationHistory
       .slice(-6)
     : [];
   const historyModuleMatch = [...priorUserMessages].reverse()
-    .map((message) => message.match(/\bmodule[\s_-]*([1-3])\b/i))
+    .map((message) => message.match(MODULE_REFERENCE_PATTERN))
     .find(Boolean);
   const historyTopic = [...priorUserMessages].reverse().find((message) => {
-    const terms = tokenize(message.replace(/\bmodule[\s_-]*[1-3]\b/ig, ' '));
+    const terms = tokenize(message.replace(MODULE_REFERENCE_PATTERN, ' '));
     return terms.some((term) => !FOLLOW_UP_TERMS.has(term));
   }) || '';
   const contextText = [
@@ -180,22 +190,16 @@ export async function retrieveKnowledge(query, context = {}, conversationHistory
       : undefined
   ].filter((value) => typeof value === 'string').join(' ');
   const isSummaryRequest = /\b(?:summary|summari[sz](?:e|ing|ed)?|overview|(?:key|main)\s+points|takeaways)\b/i.test(query);
-  const queryModuleMatch = query.match(/\bmodule[\s_-]*([1-3])\b/i);
-  const contextModuleMatch = contextText.match(/\bmodule[\s_-]*([1-3])\b/i);
-  const queryModuleNumber = queryModuleMatch ? Number(queryModuleMatch[1]) : null;
-  const queryModule = MODULES.find((module) => module.number === queryModuleNumber);
-  const moduleTitleTerms = new Set(queryModule ? tokenize(queryModule.title) : []);
-  const isModuleOnlyRequest = queryModuleMatch !== null
-    && tokenize(query).every((term) => moduleTitleTerms.has(term));
+  const queryModuleMatch = query.match(MODULE_REFERENCE_PATTERN);
+  const contextModuleMatch = contextText.match(MODULE_REFERENCE_PATTERN);
   const summaryModuleMatch = queryModuleMatch || (
     /\b(?:this|the)\s+module\b/i.test(query) && !/\blesson\b/i.test(query)
       ? contextModuleMatch
       : null
   );
 
-  if ((isSummaryRequest && summaryModuleMatch) || isModuleOnlyRequest) {
-    const selectedModuleMatch = summaryModuleMatch || queryModuleMatch;
-    const moduleNumber = Number(selectedModuleMatch[1]);
+  if (isSummaryRequest && summaryModuleMatch) {
+    const moduleNumber = Number(summaryModuleMatch[1]);
     const moduleChunks = knowledgeBase.chunks.filter((chunk) => chunk.moduleNumber === moduleNumber);
     if (moduleChunks.length > 0) {
       return {
@@ -223,7 +227,12 @@ export async function retrieveKnowledge(query, context = {}, conversationHistory
   const followUpTerms = tokenize(query).filter((term) => !FOLLOW_UP_TERMS.has(term));
   const isGenericFollowUp = tokenize(query).length > 0
     && followUpTerms.length === 0;
-  const restrictToModule = isGenericFollowUp && requestedModule !== null;
+  const contextModuleNumber = Number(context.moduleNumber);
+  const scopedModuleNumber = Number.isInteger(contextModuleNumber) && contextModuleNumber > 0
+    ? contextModuleNumber
+    : requestedModule;
+  const restrictToModule = context.restrictToModule === true
+    || (isGenericFollowUp && scopedModuleNumber !== null);
   const retrievalQuery = isGenericFollowUp && historyTopic
     ? `${query} ${historyTopic}`
     : query;
@@ -236,7 +245,7 @@ export async function retrieveKnowledge(query, context = {}, conversationHistory
   const b = 0.75;
 
   const ranked = knowledgeBase.chunks
-    .filter((chunk) => !restrictToModule || chunk.moduleNumber === requestedModule)
+    .filter((chunk) => !restrictToModule || chunk.moduleNumber === scopedModuleNumber)
     .map((chunk) => {
     const frequencies = new Map();
     for (const term of chunk.terms) frequencies.set(term, (frequencies.get(term) || 0) + 1);
@@ -256,7 +265,7 @@ export async function retrieveKnowledge(query, context = {}, conversationHistory
       score += inverseDocumentFrequency * frequency * (k1 + 1) / lengthNormalization;
     }
 
-    if (score > 0 && requestedModule === chunk.moduleNumber) score += 2;
+    if (score > 0 && scopedModuleNumber === chunk.moduleNumber) score += 2;
     return { chunk, score };
   }).filter((item) => item.score > 0)
     .sort((left, right) => right.score - left.score || left.chunk.index - right.chunk.index)
@@ -268,6 +277,22 @@ export async function retrieveKnowledge(query, context = {}, conversationHistory
       content: chunk.content
     })),
     moduleCount: knowledgeBase.documents.length
+  };
+}
+
+export async function getModuleContent(moduleNumber) {
+  knowledgeBasePromise ||= loadKnowledgeBase();
+  const knowledgeBase = await knowledgeBasePromise;
+  const moduleChunks = knowledgeBase.chunks.filter((chunk) => chunk.moduleNumber === moduleNumber);
+  if (moduleChunks.length === 0) return null;
+
+  return {
+    moduleNumber,
+    moduleTitle: moduleChunks[0].moduleTitle,
+    snippets: moduleChunks.map((chunk) => ({
+      source: chunk.source,
+      content: chunk.content
+    }))
   };
 }
 

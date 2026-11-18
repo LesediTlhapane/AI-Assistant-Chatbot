@@ -119,18 +119,26 @@ iframeWindow.postMessage({
 
 ## 📚 Course Knowledge Base
 
-The assistant uses the three course modules in `assets/knowledge base` as its
-authoritative source:
+The assistant uses the 11 course modules in `assets` as its authoritative
+source:
 
-- Module 1: Introduction to Artificial Intelligence
-- Module 2: AI Fundamentals — Key Concepts & Terminology
-- Module 3: Prompt Engineering
+1. AI 101 — A Beginner's Guide
+2. Analytical Thinking and Innovation
+3. Creative Thinking and AI
+4. Critical Thinking in the Tech Age
+5. Key Concepts and Terminologies
+6. Complex Problem Solving
+7. Curiosity and Lifelong Learning
+8. Leadership and Social Influence
+9. Prompt Engineering
+10. Reasoning and Ideation
+11. Resilience, Flexibility and Agility
 
-The server extracts text from the `.docx` files and retrieves relevant sections
-for each question before sending them to Groq. The assistant is instructed to
-say when the supplied material does not support an answer. Include this folder
-and its documents in the deployment; the server loads them at startup. Restart
-the server after adding or replacing documents.
+The server extracts text from the 11 Module `.docx` files in `assets` and
+retrieves relevant sections for each question before sending them to Groq. The
+assistant is instructed to say when the supplied material does not support an
+answer. Include the documents in the deployment; the server loads them at
+startup. Restart the server after adding or replacing documents.
 When a learner asks for a summary of a specific module, the assistant receives
 representative sections sampled across that module and generates the overview
 in one model request to keep response times down.
@@ -148,12 +156,12 @@ the Vercel project's **Settings → Environment Variables** for each environment
 you deploy (Production, Preview, and/or Development), then redeploy. The local
 `.env` file is ignored by Git and is not uploaded to Vercel.
 
-Keep the three `.docx` files in `assets/knowledge base` tracked in Git and
-included in the deployment. `vercel.json` configures these files to be bundled
-with the API functions. After deployment, open `/api/health` on the Vercel
-domain: the response should show `groqConfigured: true` and
-`knowledgeBase.status: "ready"` with three modules. If either check fails,
-review the Vercel function logs and project environment variables.
+Keep the 11 Module `.docx` files in `assets` tracked in Git and included in the
+deployment. `vercel.json` configures these files to be bundled with the API
+functions. After deployment, open `/api/health` on the Vercel domain: the
+response should show `groqConfigured: true` and `knowledgeBase.status: "ready"`
+with 11 modules. If either check fails, review the Vercel function logs and
+project environment variables.
 
 ---
 
@@ -175,5 +183,5 @@ Before final production rollout across 1,800 enrolled students, ensure the follo
 - [ ] Production domain for hosting the chatbot application.
 - [ ] Confirmed list of CrossKnowledge LMS domain origins for `ALLOWED_ORIGINS`.
 - [ ] Groq API Key configured in production environment variables (`GROQ_API_KEY`).
-- [ ] `assets/knowledge base` and its Module 1–3 documents included in the deployment.
+- [ ] All 11 Module `.docx` files in `assets` included in the deployment.
 - [ ] CrossKnowledge learner token / SSO verification strategy if persistent learner history tracking is desired for Version 2.

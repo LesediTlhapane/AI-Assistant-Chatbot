@@ -57,6 +57,6 @@ responses, the LMS can send course and lesson context to the chatbot using the
 - Serve the chatbot over HTTPS.
 - Confirm the LMS permits the chosen script or iframe integration.
 - Configure the deployed chatbot server's allowed origins for the LMS domain.
-- Include `assets/knowledge base` and its DOCX files in the server deployment.
+- Include all 11 Module DOCX files in `assets` in the server deployment.
 - Keep the Groq API key in the chatbot server environment; do not place it in
   LMS page code.

@@ -1,8 +1,11 @@
 import Groq from 'groq-sdk';
 import { ESTUDY_SYSTEM_PROMPT } from '../server/systemPrompt.js';
-import { retrieveKnowledge } from '../server/knowledgeBase.js';
+import { getModuleContent, retrieveKnowledge } from '../server/knowledgeBase.js';
 import { summarizeModule } from '../server/moduleSummary.js';
 import { getResponseStyleInstruction, normalizeResponseStyle } from '../server/responseStyle.js';
+import { isVagueConceptRequest, VAGUE_CONCEPT_REPLY } from '../server/clarification.js';
+import { formatModuleConceptList, parseModuleSelection, resolveLearningTurn } from '../server/learningFlow.js';
+import { extractModuleConcepts } from '../server/moduleConcepts.js';
 
 const PRIMARY_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 const MODELS = Array.from(new Set([
@@ -39,6 +42,46 @@ export default async function handler(req, res) {
     });
   }
 
+  if (isVagueConceptRequest(message, conversationHistory, context)) {
+    return res.status(200).json({
+      success: true,
+      message: {
+        id: `msg-${Date.now()}`,
+        sender: 'assistant',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        content: VAGUE_CONCEPT_REPLY,
+        actionType
+      }
+    });
+  }
+
+  const moduleNumber = parseModuleSelection(message);
+  let selectedModule = null;
+  if (moduleNumber !== null) {
+    try {
+      selectedModule = await getModuleContent(moduleNumber);
+    } catch (error) {
+      console.error('[Learning Flow] Unable to load selected module:', error?.message || error);
+      return res.status(503).json({
+        success: false,
+        error: 'The selected module content is currently unavailable. Please try again later.'
+      });
+    }
+
+    if (!selectedModule) {
+      return res.status(200).json({
+        success: true,
+        message: {
+          id: `msg-${Date.now()}`,
+          sender: 'assistant',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          content: `Module ${moduleNumber} content is not available in the course knowledge base. Please check the module number or choose another module.`,
+          actionType: 'general'
+        }
+      });
+    }
+  }
+
   if (!apiKey || apiKey === 'your_groq_api_key_here' || apiKey.trim() === '') {
     return res.status(503).json({
       success: false,
@@ -49,21 +92,75 @@ export default async function handler(req, res) {
 
   try {
     const responseStyle = normalizeResponseStyle(requestedResponseStyle);
+    const groq = new Groq({ apiKey: apiKey.trim() });
+    if (selectedModule) {
+      let concepts;
+      try {
+        concepts = await extractModuleConcepts(selectedModule, groq, MODELS);
+      } catch (error) {
+        console.error('[Learning Flow] Module concept extraction failed:', error?.message || error);
+        return res.status(502).json({
+          success: false,
+          error: 'I could not identify the concepts in that module from the course material. Please try again.'
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: {
+          id: `msg-${Date.now()}`,
+          sender: 'assistant',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          content: formatModuleConceptList(selectedModule, concepts),
+          actionType: 'general'
+        }
+      });
+    }
+
+    const learningTurn = resolveLearningTurn(message.trim(), conversationHistory);
+    const learningActionType = learningTurn.actionType || actionType;
+    if (learningTurn.needsConceptSelection) {
+      return res.status(200).json({
+        success: true,
+        message: {
+          id: `msg-${Date.now()}`,
+          sender: 'assistant',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          content: `Which concept from ${learningTurn.moduleTitle} would you like help with?`,
+          actionType: 'general'
+        }
+      });
+    }
+
     const safeContext = {
       courseName: context.courseName || context.courseTitle,
-      moduleName: context.moduleName || context.moduleTitle,
+      moduleName: learningTurn.context.moduleName || context.moduleName || context.moduleTitle,
       lessonTitle: context.lessonTitle,
     };
-    const knowledge = await retrieveKnowledge(message.trim(), {
+    const retrievalContext = {
       ...context,
+      ...learningTurn.context,
       lessonDescription: undefined,
-    }, conversationHistory);
+    };
+    const knowledge = await retrieveKnowledge(learningTurn.message, retrievalContext, conversationHistory);
+    if (retrievalContext.restrictToModule && knowledge.snippets.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: {
+          id: `msg-${Date.now()}`,
+          sender: 'assistant',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          content: `I couldn't find that concept in ${retrievalContext.moduleName} in the supplied course material. Could you choose one of the concepts listed for this module?`,
+          actionType: 'general'
+        }
+      });
+    }
     const knowledgePrompt = knowledge.snippets.length > 0
       ? knowledge.snippets.map(({ source, content }) => `[Source: ${source}]\n${content}`).join('\n\n')
-      : 'No relevant excerpts were found in the Module 1–3 knowledge base.';
+      : 'No relevant excerpts were found in the course knowledge base.';
 
     const actionInstructions = {
-      explain: 'Explain the topic clearly, step by step, using only the supplied knowledge-base excerpts. Never use LaTeX.',
+      explain: 'Explain only the learner-selected concept in simple, understandable language with clear headings. Include a practical workplace example only when supported by the supplied excerpts. Do not introduce unrelated concepts. Never use LaTeX.',
       simplify: 'Explain the topic in simple language using only the supplied knowledge-base excerpts. Never use LaTeX.',
       example: 'Give an example grounded in the supplied excerpts and label illustrative details. Never use LaTeX.',
       summarise: knowledge.isModuleSummary
@@ -92,13 +189,12 @@ ${knowledgePrompt}
 INSTRUCTION:
 ${knowledge.isModuleSummary
     ? 'Create a brief but comprehensive summary of the supplied module content, covering its major concepts and key takeaways. Never ask the learner to narrow the request. Never use LaTeX.'
-    : actionInstructions[actionType] || actionInstructions.general}
+    : actionInstructions[learningActionType] || actionInstructions.general}
 
 LEARNER'S QUESTION:
-${message.trim()}
+${learningTurn.message}
 `;
 
-    const groq = new Groq({ apiKey: apiKey.trim() });
     let answer = '';
     let lastError;
 
@@ -115,12 +211,12 @@ ${message.trim()}
             model,
             messages: [
               { role: 'system', content: ESTUDY_SYSTEM_PROMPT },
-              { role: 'system', content: getResponseStyleInstruction(responseStyle, actionType) },
+              { role: 'system', content: getResponseStyleInstruction(responseStyle, learningActionType) },
               ...historyMessages,
               { role: 'user', content: prompt }
             ],
             temperature: 0.2,
-            max_tokens: actionType === 'quiz' ? 2048 : responseStyle === 'concise' ? 300 : 1600,
+            max_tokens: learningActionType === 'quiz' ? 2048 : responseStyle === 'concise' ? 300 : 1600,
             ...(model.startsWith('openai/gpt-oss-') || model.startsWith('qwen/qwen3.')
               ? { reasoning_effort: 'low' }
               : {}),
@@ -143,7 +239,7 @@ ${message.trim()}
     }
 
     let quizData;
-    if (actionType === 'quiz') {
+    if (learningActionType === 'quiz') {
       try {
         const jsonText = answer.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
         const parsedQuiz = JSON.parse(jsonText);
@@ -166,7 +262,7 @@ ${message.trim()}
           minute: '2-digit',
         }),
         content: answer,
-        actionType,
+        actionType: learningActionType,
         contextLessonId: context.lessonId,
         contextLessonTitle: context.lessonTitle,
         suggestions: ['Simplify this', 'Give me an example', 'Take a quiz'],

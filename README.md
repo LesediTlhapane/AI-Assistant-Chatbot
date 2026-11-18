@@ -67,8 +67,8 @@ PORT=3000
 
 For Vercel, configure `GROQ_API_KEY` in the project's **Settings → Environment
 Variables** for each deployment environment, then redeploy. The local `.env`
-file is ignored by Git and is not uploaded. Keep the course DOCX files in
-`assets/knowledge base` tracked in Git; see
+file is ignored by Git and is not uploaded. Keep all 11 Module DOCX files in
+`assets` tracked in Git; see
 [docs/INTEGRATION.md](./docs/INTEGRATION.md#deploying-on-vercel) for deployment
 checks.
 
