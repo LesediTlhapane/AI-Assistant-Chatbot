@@ -34,6 +34,12 @@ export interface AssistantContext {
   moduleProgress?: number;
 }
 
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  updatedAt: string;
+}
+
 export interface QuizOption {
   id: string;
   text: string;

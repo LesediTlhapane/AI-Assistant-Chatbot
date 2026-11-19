@@ -142,8 +142,10 @@ export const SettingsModal = ({
             <span className="text-gray-500">Reset Current Conversation:</span>
             <button
               onClick={() => {
-                onClearHistory();
-                onClose();
+                if (window.confirm('Clear all messages in this conversation? Other saved conversations will not be affected.')) {
+                  onClearHistory();
+                  onClose();
+                }
               }}
               className="px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition-colors flex items-center gap-1"
             >

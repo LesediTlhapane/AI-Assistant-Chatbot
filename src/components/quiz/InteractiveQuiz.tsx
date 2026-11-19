@@ -10,50 +10,76 @@ import {
   BrainCircuit 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { QuizQuestion } from '../../types/assistant';
+import { ChatMessage, QuizQuestion } from '../../types/assistant';
 
 interface InteractiveQuizProps {
   questions: QuizQuestion[];
+  progress?: NonNullable<ChatMessage['quizData']>;
+  onProgressChange?: (progress: NonNullable<ChatMessage['quizData']>) => void;
   onComplete?: (score: number, total: number) => void;
   onRestart?: () => void;
 }
 
 export const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({
   questions,
+  progress,
+  onProgressChange,
   onComplete,
   onRestart
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [hasAnswered, setHasAnswered] = useState(false);
-  const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
-  const [isFinished, setIsFinished] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(progress?.currentQuestionIndex || 0);
+  const [userAnswers, setUserAnswers] = useState<Record<number, string>>(() =>
+    Object.fromEntries(
+      Object.entries(progress?.userAnswers || {}).map(([index, answer]) => [Number(index), answer])
+    )
+  );
+  const [isFinished, setIsFinished] = useState(progress?.isSubmitted || false);
 
   const currentQ = questions[currentIndex] || questions[0];
   const total = questions.length;
+  const selectedOption = userAnswers[currentIndex] || null;
+  const hasAnswered = Boolean(selectedOption);
   const isCorrect = selectedOption === currentQ.correctAnswerId;
+
+  const publishProgress = (
+    questionIndex: number,
+    answers: Record<number, string>,
+    isSubmitted: boolean,
+    score?: number
+  ) => {
+    onProgressChange?.({
+      questions,
+      currentQuestionIndex: questionIndex,
+      userAnswers: Object.fromEntries(
+        Object.entries(answers).map(([index, answer]) => [String(index), answer])
+      ),
+      isSubmitted,
+      score
+    });
+  };
 
   const handleSelectOption = (optionId: string) => {
     if (hasAnswered) return;
-    setSelectedOption(optionId);
-    setHasAnswered(true);
-    setUserAnswers((prev) => ({
-      ...prev,
+    const updatedAnswers = {
+      ...userAnswers,
       [currentIndex]: optionId
-    }));
+    };
+    setUserAnswers(updatedAnswers);
+    publishProgress(currentIndex, updatedAnswers, isFinished);
   };
 
   const handleNextQuestion = () => {
     if (currentIndex + 1 < total) {
-      setCurrentIndex(currentIndex + 1);
-      setSelectedOption(null);
-      setHasAnswered(false);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      publishProgress(nextIndex, userAnswers, false);
     } else {
       setIsFinished(true);
-      const score = Object.entries({ ...userAnswers, [currentIndex]: selectedOption || '' }).filter(
+      const score = Object.entries(userAnswers).filter(
         ([idx, ans]) => ans === questions[Number(idx)]?.correctAnswerId
       ).length;
-      
+
+      publishProgress(currentIndex, userAnswers, true, score);
       if (score >= Math.ceil(total * 0.7)) {
         confetti({
           particleCount: 50,
@@ -68,10 +94,9 @@ export const InteractiveQuiz: React.FC<InteractiveQuizProps> = ({
 
   const handleReset = () => {
     setCurrentIndex(0);
-    setSelectedOption(null);
-    setHasAnswered(false);
     setUserAnswers({});
     setIsFinished(false);
+    publishProgress(0, {}, false);
     if (onRestart) onRestart();
   };
 

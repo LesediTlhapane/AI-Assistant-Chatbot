@@ -16,6 +16,7 @@ interface ChatMessageItemProps {
   message: ChatMessage;
   context?: AssistantContext;
   onSelectSuggestion?: (suggestion: string) => void;
+  onUpdateMessage?: (messageId: string, updates: Partial<ChatMessage>) => void;
   isVoiceEnabled?: boolean;
 }
 
@@ -23,6 +24,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   message,
   context,
   onSelectSuggestion,
+  onUpdateMessage,
   isVoiceEnabled
 }) => {
   const isUser = message.sender === 'user' || message.role === 'learner';
@@ -154,14 +156,22 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           {/* Embedded Quiz if present */}
           {message.quizData && (
             <div className="mt-3 pt-2 border-t border-gray-100">
-              <InteractiveQuiz questions={message.quizData.questions} />
+              <InteractiveQuiz
+                questions={message.quizData.questions}
+                progress={message.quizData}
+                onProgressChange={(quizData) => onUpdateMessage?.(message.id, { quizData })}
+              />
             </div>
           )}
 
           {/* Embedded Challenge if present */}
           {message.challengeData && (
             <div className="mt-3 pt-2 border-t border-gray-100">
-              <PracticalChallenge scenario={message.challengeData.scenario} />
+              <PracticalChallenge
+                scenario={message.challengeData.scenario}
+                progress={message.challengeData}
+                onProgressChange={(challengeData) => onUpdateMessage?.(message.id, { challengeData })}
+              />
             </div>
           )}
 

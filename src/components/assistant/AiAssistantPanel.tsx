@@ -4,7 +4,8 @@ import {
   AssistantContext, 
   ChatMessage, 
   QuickActionType,
-  ResponseStyle
+  ResponseStyle,
+  ConversationSummary
 } from '../../types/assistant';
 import { aiService } from '../../services/aiService';
 import { AssistantHeader } from './AssistantHeader';
@@ -40,6 +41,7 @@ export interface AiAssistantPanelProps {
    * Controlled message handler (optional)
    */
   onSendMessage?: (query: string, actionType?: QuickActionType, responseStyle?: ResponseStyle) => void;
+  onUpdateMessage?: (messageId: string, updates: Partial<ChatMessage>) => void;
 
   /**
    * Whether the panel is being rendered in full screen / mobile drawer
@@ -67,6 +69,13 @@ export interface AiAssistantPanelProps {
   lesson?: any;
   isThinking?: boolean;
   onResetConversation?: () => void;
+  onClearCurrentHistory?: () => void;
+  conversations?: ConversationSummary[];
+  activeConversationId?: string;
+  onSelectConversation?: (id: string) => void;
+  onDeleteConversation?: (id: string) => void;
+  storageError?: string | null;
+  onRetryStorage?: () => void;
 }
 
 export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
@@ -75,6 +84,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
   onCollapse,
   messages: externalMessages,
   onSendMessage: externalSendMessage,
+  onUpdateMessage: externalUpdateMessage,
   isMobileDrawer = false,
   isExpanded = false,
   onToggleExpand,
@@ -83,7 +93,14 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
   module,
   lesson,
   isThinking: externalThinking,
-  onResetConversation
+  onResetConversation,
+  onClearCurrentHistory,
+  conversations,
+  activeConversationId,
+  onSelectConversation,
+  onDeleteConversation,
+  storageError,
+  onRetryStorage
 }) => {
   // Derive effective context if legacy props passed
   const activeContext: AssistantContext = context || {
@@ -183,6 +200,16 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
     }
   };
 
+  const handleUpdateMessage = (messageId: string, updates: Partial<ChatMessage>) => {
+    if (isControlled) {
+      externalUpdateMessage?.(messageId, updates);
+      return;
+    }
+    setInternalMessages((previous) =>
+      previous.map((message) => message.id === messageId ? { ...message, ...updates } : message)
+    );
+  };
+
   const handleActionSelect = (actionType: QuickActionType, promptText?: string) => {
     let query = promptText;
     if (!query) {
@@ -226,9 +253,16 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
       <AssistantHeader
         onCollapse={onCollapse}
         onReset={handleResetConversation}
+        onNewConversation={onResetConversation}
         onOpenSettings={() => setIsSettingsOpen(true)}
         isVoiceEnabled={isVoiceEnabled}
         onToggleVoice={() => setIsVoiceEnabled(!isVoiceEnabled)}
+        responseStyle={responseStyle}
+        onChangeResponseStyle={setResponseStyle}
+        conversations={conversations}
+        activeConversationId={activeConversationId}
+        onSelectConversation={onSelectConversation}
+        onDeleteConversation={onDeleteConversation}
         isExpanded={isExpanded}
         onToggleExpand={onToggleExpand}
       />
@@ -244,6 +278,19 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
 
       {/* 4. Main Scrollable Conversation & Content Area */}
       <div className="flex-1 overflow-y-auto flex flex-col custom-scrollbar bg-[#F5F7FA]/30">
+        {storageError && (
+          <div role="alert" className="m-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+            <p>Conversation storage could not be saved. Sending is paused to avoid losing more history. {storageError}</p>
+            {onRetryStorage && (
+              <button
+                onClick={onRetryStorage}
+                className="mt-2 inline-flex items-center gap-1 font-semibold text-rose-900 underline"
+              >
+                Retry saving
+              </button>
+            )}
+          </div>
+        )}
         {errorMessage && (
           <div className="m-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between gap-2 animate-in fade-in duration-200">
             <div className="flex items-center gap-2">
@@ -270,6 +317,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
             isThinking={isThinking}
             context={activeContext}
             onSelectSuggestion={(sug) => handleSendMessage(sug, 'general')}
+            onUpdateMessage={handleUpdateMessage}
             isVoiceEnabled={isVoiceEnabled}
           />
         )}
@@ -278,7 +326,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
       {/* 5. Fixed Chat Input */}
       <ChatInput
         onSendMessage={(text) => handleSendMessage(text, 'general')}
-        disabled={false}
+        disabled={Boolean(storageError)}
         isThinking={isThinking}
         lessonTitle={activeContext.lessonTitle}
       />
@@ -287,7 +335,7 @@ export const AiAssistantPanel: React.FC<AiAssistantPanelProps> = ({
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onClearHistory={handleResetConversation}
+        onClearHistory={onClearCurrentHistory || handleResetConversation}
         responseStyle={responseStyle}
         onChangeResponseStyle={setResponseStyle}
         theme={theme}

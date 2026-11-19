@@ -8,6 +8,7 @@ interface ChatMessageListProps {
   isThinking: boolean;
   context?: AssistantContext;
   onSelectSuggestion: (suggestion: string) => void;
+  onUpdateMessage?: (messageId: string, updates: Partial<ChatMessage>) => void;
   isVoiceEnabled: boolean;
 }
 
@@ -16,6 +17,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
   isThinking,
   context,
   onSelectSuggestion,
+  onUpdateMessage,
   isVoiceEnabled
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -32,6 +34,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
           message={msg}
           context={context}
           onSelectSuggestion={onSelectSuggestion}
+          onUpdateMessage={onUpdateMessage}
           isVoiceEnabled={isVoiceEnabled}
         />
       ))}

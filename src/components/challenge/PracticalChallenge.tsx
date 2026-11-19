@@ -11,22 +11,39 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { ChallengeScenario, ChallengeEvaluation } from '../../types/assistant';
+import { ChatMessage, ChallengeScenario, ChallengeEvaluation } from '../../types/assistant';
 import { aiService } from '../../services/aiService';
 
 interface PracticalChallengeProps {
   scenario: ChallengeScenario;
+  progress?: NonNullable<ChatMessage['challengeData']>;
+  onProgressChange?: (progress: NonNullable<ChatMessage['challengeData']>) => void;
   onCompleted?: () => void;
 }
 
 export const PracticalChallenge: React.FC<PracticalChallengeProps> = ({
   scenario,
+  progress,
+  onProgressChange,
   onCompleted
 }) => {
-  const [userText, setUserText] = useState('');
+  const [userText, setUserText] = useState(progress?.userSubmission || '');
   const [isEvaluating, setIsEvaluating] = useState(false);
-  const [evaluation, setEvaluation] = useState<ChallengeEvaluation | null>(null);
+  const [evaluation, setEvaluation] = useState<ChallengeEvaluation | null>(progress?.evaluation || null);
   const [showConsiderations, setShowConsiderations] = useState(false);
+
+  const publishProgress = (submission: string, result: ChallengeEvaluation | null) => {
+    onProgressChange?.({
+      scenario,
+      userSubmission: submission,
+      evaluation: result || undefined
+    });
+  };
+
+  const updateUserText = (value: string) => {
+    setUserText(value);
+    publishProgress(value, evaluation);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +53,7 @@ export const PracticalChallenge: React.FC<PracticalChallengeProps> = ({
     try {
       const result = await aiService.evaluateChallenge(userText, scenario, {});
       setEvaluation(result);
+      publishProgress(userText, result);
       if (result.score >= 75) {
         confetti({
           particleCount: 40,
@@ -50,7 +68,7 @@ export const PracticalChallenge: React.FC<PracticalChallengeProps> = ({
   };
 
   const handleInsertTemplate = () => {
-    setUserText(
+    updateUserText(
       `1. Document Curation: Audit, deduplicate, and sanitize the 200 SOPs before ingesting into the knowledge base.\n2. Data Privacy (POPIA): Strip sensitive client/employee PII and ensure enterprise-level zero-data retention.\n3. 30-Day Metrics: Track query resolution speed, accuracy ratings, and staff adoption rates.`
     );
   };
@@ -175,6 +193,7 @@ export const PracticalChallenge: React.FC<PracticalChallengeProps> = ({
             onClick={() => {
               setEvaluation(null);
               setUserText('');
+              publishProgress('', null);
             }}
             className="w-full py-2 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
@@ -204,7 +223,7 @@ export const PracticalChallenge: React.FC<PracticalChallengeProps> = ({
               id="challenge-response"
               rows={4}
               value={userText}
-              onChange={(e) => setUserText(e.target.value)}
+              onChange={(e) => updateUserText(e.target.value)}
               placeholder="Draft your 3-step rollout plan here (document curation, data privacy & POPIA, 30-day KPIs)..."
               className="w-full p-3 rounded-xl border border-gray-200 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#052B66]/20 focus:border-[#052B66] leading-relaxed resize-none"
             />
